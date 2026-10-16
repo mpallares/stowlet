@@ -1,7 +1,7 @@
 /*
  * Paste this whole file into the DevTools console on https://chatgpt.com while
  * logged in. It downloads three JSON fixtures:
- *   chatgpt-session.json        (token REDACTED)
+ *   chatgpt-session.json        (tokens and account REDACTED)
  *   chatgpt-conversations.json  (first page of the list)
  *   chatgpt-conversation.json   (the most recent conversation)
  * Save them into extension/test/fixtures/chatgpt/ (git-ignored: they contain
@@ -22,7 +22,9 @@
   save('chatgpt-session.json', {
     ...session,
     accessToken: token ? 'REDACTED' : null,
+    sessionToken: session.sessionToken ? 'REDACTED' : undefined,
     user: undefined,
+    account: undefined,
   });
   if (!token) {
     console.warn(
