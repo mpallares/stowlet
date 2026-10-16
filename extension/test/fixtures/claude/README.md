@@ -1,4 +1,4 @@
-# Claude fixtures (needs capture)
+# Claude fixtures
 
 The Claude adapter in `src/adapters/claude/` is written against the last known
 shape of these endpoints (cookie-authenticated, same origin):
@@ -9,8 +9,7 @@ shape of these endpoints (cookie-authenticated, same origin):
 | `GET /api/organizations/:org/chat_conversations?limit&offset`   | `[{ uuid, name, created_at, updated_at }]` or `{ data: [...] }`              |
 | `GET /api/organizations/:org/chat_conversations/:id?tree=True…` | `{ name, created_at, updated_at, current_leaf_message_uuid, chat_messages }` |
 
-Nobody has confirmed those shapes against the live site yet. To capture real
-responses:
+Confirmed against live responses captured on 2026-10-16. To refresh the capture:
 
 1. Open https://claude.ai and log in.
 2. Open DevTools → Console, paste the contents of `scripts/capture-claude-fixtures.js`, press Enter.

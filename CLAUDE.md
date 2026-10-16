@@ -99,10 +99,10 @@ the actual file download with an anchor element, so no `downloads` permission.
 - Playwright uses `channel: 'chromium'` (Chrome for Testing); branded Chrome
   removed `--load-extension`.
 
-## ChatGPT and Claude adapters: need fixtures
+## Adapter fixtures
 
 The endpoint shapes in `adapters/chatgpt/config.ts` and `adapters/claude/config.ts`
-are from previously observed responses, unconfirmed against the live sites.
+were confirmed against live responses captured on 2026-10-16.
 Capture real responses with `extension/scripts/capture-chatgpt-fixtures.js` and
 `extension/scripts/capture-claude-fixtures.js` (see the README in each
 `test/fixtures/<vendor>/` directory). The fixture-driven tests

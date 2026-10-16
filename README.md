@@ -55,10 +55,10 @@ the content script runs on a local fixture page served from
 `MockAdapter` fed by `extension/test/fixtures/mock-conversations.json`. The
 production build never includes the localhost match; CI asserts this.
 
-## Adapter status: both need fixtures
+## Adapter status
 
-The ChatGPT and Claude adapters target the last known shape of each app's
-in-page API. Nobody has confirmed them against the live sites yet. See
+Both adapters are confirmed against live responses captured on 2026-10-16.
+To refresh the captures, see
 `extension/test/fixtures/chatgpt/README.md` and
 `extension/test/fixtures/claude/README.md` for the DevTools snippets that
 capture real responses as fixtures. If an API shape changed, the panel shows
