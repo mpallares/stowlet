@@ -1,12 +1,12 @@
 import type { NextConfig } from 'next';
 
+// Fully static site: `next build` writes to web/out. No server, no database, no auth.
+// Response headers cannot be set from here with `output: 'export'`; the CORS header
+// the extension needs on /config/* lives in vercel.json.
 const nextConfig: NextConfig = {
-  async headers() {
-    // The extension's background worker fetches /v1/config.json cross-origin.
-    return [
-      { source: '/v1/:path*', headers: [{ key: 'Access-Control-Allow-Origin', value: '*' }] },
-    ];
-  },
+  output: 'export',
+  trailingSlash: false,
+  images: { unoptimized: true },
 };
 
 export default nextConfig;

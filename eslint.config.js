@@ -12,6 +12,7 @@ export default tseslint.config(
       '**/.wxt/**',
       '**/dist/**',
       '**/.next/**',
+      'web/out/**',
       '**/test-results/**',
       '**/playwright-report/**',
       'extension/scripts/capture-chatgpt-fixtures.js',
