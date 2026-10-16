@@ -1,0 +1,108 @@
+@import 'tailwindcss';
+
+@theme {
+  --font-sans:
+    ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --color-accent: #c2410c;
+  --color-accent-strong: #9a3412;
+}
+
+:root {
+  color-scheme: light dark;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+}
+
+body {
+  @apply bg-white text-neutral-900 antialiased dark:bg-neutral-950 dark:text-neutral-100;
+}
+
+/* Long-form legal and support pages. Keep typography here instead of per-element classes. */
+.prose-page h1 {
+  @apply mb-2 text-3xl font-semibold tracking-tight;
+}
+.prose-page h2 {
+  @apply mt-10 mb-3 text-xl font-semibold tracking-tight;
+}
+.prose-page h3 {
+  @apply mt-6 mb-2 text-base font-semibold;
+}
+.prose-page p,
+.prose-page li {
+  @apply leading-7 text-neutral-700 dark:text-neutral-300;
+}
+.prose-page p {
+  @apply my-3;
+}
+.prose-page ul {
+  @apply my-3 list-disc space-y-1 pl-6;
+}
+.prose-page ol {
+  @apply my-3 list-decimal space-y-1 pl-6;
+}
+.prose-page a {
+  @apply text-accent underline underline-offset-2 hover:text-accent-strong dark:text-orange-400 dark:hover:text-orange-300;
+}
+.prose-page code {
+  @apply rounded bg-neutral-100 px-1 py-0.5 font-mono text-[0.9em] dark:bg-neutral-800;
+}
+.prose-page table {
+  @apply my-4 w-full text-sm;
+}
+.prose-page th,
+.prose-page td {
+  @apply border-b border-neutral-200 py-2 pr-4 text-left align-top dark:border-neutral-800;
+}
+.prose-page th {
+  @apply font-semibold;
+}
+
+/* FAQ disclosure: ease the answer open instead of snapping. CSS only.
+   Height animates where ::details-content is supported (Chrome 131+);
+   everywhere else the answer still fades and slides in. */
+.faq-item {
+  interpolate-size: allow-keywords;
+}
+.faq-item::details-content {
+  block-size: 0;
+  overflow: hidden;
+  opacity: 0;
+  transition:
+    block-size 280ms ease,
+    opacity 280ms ease,
+    content-visibility 280ms allow-discrete;
+}
+.faq-item[open]::details-content {
+  block-size: auto;
+  opacity: 1;
+}
+@keyframes faq-answer-in {
+  from {
+    opacity: 0;
+    translate: 0 -6px;
+  }
+  to {
+    opacity: 1;
+    translate: 0 0;
+  }
+}
+.faq-item[open] > .faq-answer {
+  animation: faq-answer-in 280ms ease both;
+}
+@media (prefers-reduced-motion: reduce) {
+  .faq-item::details-content {
+    transition: none;
+  }
+  .faq-item[open] > .faq-answer {
+    animation: none;
+  }
+}
