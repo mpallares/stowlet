@@ -4,6 +4,7 @@ import {
   type AdapterResult,
   type ColorScheme,
   type Conversation,
+  type ConversationList,
   type ConversationSummary,
   type VendorAdapter,
 } from '@gaveta/shared';
@@ -70,13 +71,13 @@ export class ChatGPTAdapter implements VendorAdapter {
     };
   }
 
-  async listConversations(): Promise<AdapterResult<ConversationSummary[]>> {
+  async listConversations(): Promise<AdapterResult<ConversationList>> {
     const viaApi = await this.listViaApi();
     if (viaApi.ok) return viaApi;
     const viaDom = this.listViaDom();
     if (viaDom.length > 0) {
       log.warn('chatgpt', 'list-fallback-dom', { code: viaApi.error.code, count: viaDom.length });
-      return adapterOk(viaDom);
+      return adapterOk({ items: viaDom, complete: false });
     }
     return viaApi;
   }
@@ -91,18 +92,21 @@ export class ChatGPTAdapter implements VendorAdapter {
 
   // ---- internals ------------------------------------------------------------
 
-  private async listViaApi(): Promise<AdapterResult<ConversationSummary[]>> {
+  private async listViaApi(): Promise<AdapterResult<ConversationList>> {
     const all: ConversationSummary[] = [];
     for (let page = 0; page < cfg.maxPages; page += 1) {
       const offset = page * cfg.pageSize;
       const res = await this.authedJson(cfg.endpoints.conversations(offset, cfg.pageSize));
-      if (!res.ok) return all.length > 0 ? adapterOk(all) : res;
+      if (!res.ok) return all.length > 0 ? adapterOk({ items: all, complete: false }) : res;
       const parsed = parseConversationsPage(res.value);
       if (!parsed) return adapterErr('needs-update', 'Conversation list has an unexpected shape');
       all.push(...parsed.items);
-      if (parsed.items.length < cfg.pageSize || all.length >= parsed.total) break;
+      if (parsed.items.length < cfg.pageSize || all.length >= parsed.total) {
+        return adapterOk({ items: all, complete: true });
+      }
     }
-    return adapterOk(all);
+    // Ran out of pages before the vendor did.
+    return adapterOk({ items: all, complete: false });
   }
 
   private listViaDom(): ConversationSummary[] {

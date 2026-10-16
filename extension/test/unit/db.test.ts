@@ -6,10 +6,12 @@ import {
   FolderLimitError,
   getItem,
   listFolders,
+  listConversationMeta,
   listItemsInFolder,
   listPinned,
   markIndexed,
   moveFolder,
+  pruneMissing,
   removeFromFolder,
   renameFolder,
   setFolderColor,
@@ -101,5 +103,25 @@ describe('conversation metadata', () => {
     const pinned = await listPinned('mock');
     expect(pinned.map((p) => p.title)).toEqual(['Two (edited)']);
     expect(pinned[0]?.messageCount).toBe(4);
+  });
+
+  it('prunes conversations the vendor no longer lists, including folder membership', async () => {
+    await upsertSummaries('mock', [
+      { id: 'c1', title: 'One', createdAt: 1, updatedAt: 10 },
+      { id: 'c2', title: 'Two', createdAt: 2, updatedAt: 20 },
+      { id: 'c3', title: 'Three', createdAt: 3, updatedAt: 30 },
+    ]);
+    const folder = await createFolder({ name: 'Keep', limit: 5 });
+    await addToFolder('mock', 'c1', folder.id);
+    await addToFolder('mock', 'c2', folder.id);
+
+    const gone = await pruneMissing('mock', ['c1', 'c3']);
+    expect(gone).toEqual(['mock:c2']);
+
+    const remaining = await listConversationMeta('mock');
+    expect(remaining.map((c) => c.id).sort()).toEqual(['mock:c1', 'mock:c3']);
+    expect(await getItem('mock:c2')).toBeUndefined();
+    expect(await getItem('mock:c1')).toBeDefined();
+    expect(await pruneMissing('mock', ['c1', 'c3'])).toEqual([]);
   });
 });

@@ -102,6 +102,33 @@ describe('syncVendor (incremental indexing)', () => {
     expect(metas.every((m) => m.indexedUpdatedAt !== null)).toBe(true);
   });
 
+  it('removes conversations the vendor deleted, but only from a complete list', async () => {
+    const adapter = new MockAdapter({ win: undefined as unknown as Window });
+    const idx = SearchIndex.empty();
+    await syncVendor(adapter, idx);
+    const before = await listConversationMeta('mock');
+    expect(before.length).toBeGreaterThan(1);
+    const victim = before[0]?.conversationId ?? '';
+    const key = `mock:${victim}` as const;
+    expect(idx.has(key)).toBe(true);
+
+    adapter.remove(victim);
+    adapter.listComplete = false;
+    const partial = await syncVendor(adapter, idx);
+    expect(partial.ok && partial.removed).toBe(0);
+    expect(idx.has(key)).toBe(true);
+    expect((await listConversationMeta('mock')).length).toBe(before.length);
+
+    adapter.listComplete = true;
+    const full = await syncVendor(adapter, idx);
+    expect(full.ok && full.removed).toBe(1);
+    expect(idx.has(key)).toBe(false);
+    expect((await listConversationMeta('mock')).map((c) => c.id)).not.toContain(key);
+    const stored = await loadSerializedIndex();
+    expect(stored?.docCount).toBe(before.length - 1);
+    expect(stored ? SearchIndex.fromJSON(stored.json)?.has(key) : null).toBe(false);
+  });
+
   it('surfaces adapter failures instead of throwing', async () => {
     const adapter = new MockAdapter({
       failWith: 'needs-update',

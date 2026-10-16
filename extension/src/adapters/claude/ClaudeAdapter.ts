@@ -4,6 +4,7 @@ import {
   type AdapterResult,
   type ColorScheme,
   type Conversation,
+  type ConversationList,
   type ConversationSummary,
   type VendorAdapter,
 } from '@gaveta/shared';
@@ -68,13 +69,13 @@ export class ClaudeAdapter implements VendorAdapter {
     };
   }
 
-  async listConversations(): Promise<AdapterResult<ConversationSummary[]>> {
+  async listConversations(): Promise<AdapterResult<ConversationList>> {
     const viaApi = await this.listViaApi();
     if (viaApi.ok) return viaApi;
     const viaDom = this.listViaDom();
     if (viaDom.length > 0) {
       log.warn('claude', 'list-fallback-dom', { code: viaApi.error.code, count: viaDom.length });
-      return adapterOk(viaDom);
+      return adapterOk({ items: viaDom, complete: false });
     }
     return viaApi;
   }
@@ -91,16 +92,17 @@ export class ClaudeAdapter implements VendorAdapter {
 
   // ---- internals ------------------------------------------------------------
 
-  private async listViaApi(): Promise<AdapterResult<ConversationSummary[]>> {
+  private async listViaApi(): Promise<AdapterResult<ConversationList>> {
     const org = await this.getOrgId();
     if (!org.ok) return org;
     const all: ConversationSummary[] = [];
     const seen = new Set<string>();
+    let complete = false;
     for (let page = 0; page < cfg.maxPages; page += 1) {
       const res = await this.apiJson(
         cfg.endpoints.conversations(org.value, page * cfg.pageSize, cfg.pageSize),
       );
-      if (!res.ok) return all.length > 0 ? adapterOk(all) : res;
+      if (!res.ok) return all.length > 0 ? adapterOk({ items: all, complete: false }) : res;
       const items = parseConversationList(res.value);
       if (!items) return adapterErr('needs-update', 'Conversation list has an unexpected shape');
       let added = 0;
@@ -111,9 +113,12 @@ export class ClaudeAdapter implements VendorAdapter {
         added += 1;
       }
       // Older deployments ignore paging and return everything at once.
-      if (items.length < cfg.pageSize || added === 0) break;
+      if (items.length < cfg.pageSize || added === 0) {
+        complete = true;
+        break;
+      }
     }
-    return adapterOk(all.sort((a, b) => b.updatedAt - a.updatedAt));
+    return adapterOk({ items: all.sort((a, b) => b.updatedAt - a.updatedAt), complete });
   }
 
   private listViaDom(): ConversationSummary[] {

@@ -4,7 +4,7 @@ import {
   type AdapterResult,
   type ColorScheme,
   type Conversation,
-  type ConversationSummary,
+  type ConversationList,
   type VendorAdapter,
 } from '@gaveta/shared';
 import fixtures from '../../../test/fixtures/mock-conversations.json';
@@ -32,6 +32,8 @@ export class MockAdapter implements VendorAdapter {
   private readonly failWith: MockAdapterOptions['failWith'];
   private readonly win: Window | null;
   calls = { list: 0, get: 0 };
+  /** Test helper: report the list as partial (like a DOM fallback) so sync must not prune. */
+  listComplete = true;
 
   constructor(opts: MockAdapterOptions = {}) {
     const source = opts.conversations ?? (fixtures as MockFixtures).conversations;
@@ -70,14 +72,14 @@ export class MockAdapter implements VendorAdapter {
     return () => this.win?.removeEventListener('hashchange', handler);
   }
 
-  async listConversations(): Promise<AdapterResult<ConversationSummary[]>> {
+  async listConversations(): Promise<AdapterResult<ConversationList>> {
     this.calls.list += 1;
     await this.wait();
     if (this.failWith) return adapterErr(this.failWith, 'Mock failure');
-    const summaries = [...this.conversations.values()]
+    const items = [...this.conversations.values()]
       .map(({ id, title, createdAt, updatedAt }) => ({ id, title, createdAt, updatedAt }))
       .sort((a, b) => b.updatedAt - a.updatedAt);
-    return adapterOk(summaries);
+    return adapterOk({ items, complete: this.listComplete });
   }
 
   async getConversation(id: string): Promise<AdapterResult<Conversation>> {
@@ -94,6 +96,11 @@ export class MockAdapter implements VendorAdapter {
     if (!c) return;
     c.messages.push(...extra);
     c.updatedAt = Date.now();
+  }
+
+  /** Test helper: simulate the user deleting a chat on the vendor's site. */
+  remove(id: string): void {
+    this.conversations.delete(id);
   }
 
   private wait(): Promise<void> {

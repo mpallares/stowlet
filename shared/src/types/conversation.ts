@@ -20,6 +20,17 @@ export interface ConversationSummary {
   updatedAt: number;
 }
 
+/** Result of listing a vendor's conversations. */
+export interface ConversationList {
+  items: ConversationSummary[];
+  /**
+   * True when `items` is the vendor's whole list. False for partial sources such
+   * as a DOM fallback or a paging run that stopped early. Only a complete list
+   * may be used to delete local records of conversations the vendor no longer has.
+   */
+  complete: boolean;
+}
+
 export interface Conversation extends ConversationSummary {
   messages: Message[];
 }

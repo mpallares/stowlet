@@ -60,6 +60,28 @@ export async function upsertSummaries(
   return stale;
 }
 
+/**
+ * Deletes local records of this vendor's conversations that are not in `keepIds`,
+ * including their folder membership. Call it only with a complete vendor list.
+ * Returns the removed keys so the caller can drop them from the search index.
+ */
+export async function pruneMissing(
+  vendorId: VendorId,
+  keepIds: Iterable<string>,
+): Promise<ConversationKey[]> {
+  const db = getDb();
+  const keep = new Set<string>();
+  for (const id of keepIds) keep.add(conversationKey(vendorId, id));
+  return db.transaction('rw', db.conversations_meta, db.folder_items, async () => {
+    const rows = await db.conversations_meta.where('vendorId').equals(vendorId).toArray();
+    const gone = rows.map((r) => r.id).filter((key) => !keep.has(key));
+    if (gone.length === 0) return [];
+    await db.conversations_meta.bulkDelete(gone);
+    await db.folder_items.bulkDelete(gone);
+    return gone;
+  });
+}
+
 export async function markIndexed(
   key: ConversationKey,
   info: { updatedAt: number; messageCount: number; preview: string },

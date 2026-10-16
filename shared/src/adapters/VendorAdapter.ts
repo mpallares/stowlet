@@ -1,4 +1,4 @@
-import type { Conversation, ConversationSummary } from '../types/conversation';
+import type { Conversation, ConversationList } from '../types/conversation';
 import type { VendorId } from '../types/vendor';
 
 /**
@@ -42,7 +42,7 @@ export interface VendorAdapter {
   matches(url: string): boolean;
 
   /** All conversations the user can see, newest first when the vendor supports ordering. */
-  listConversations(): Promise<AdapterResult<ConversationSummary[]>>;
+  listConversations(): Promise<AdapterResult<ConversationList>>;
 
   /** Full conversation with messages. */
   getConversation(id: string): Promise<AdapterResult<Conversation>>;

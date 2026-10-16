@@ -68,6 +68,11 @@ the actual file download with an anchor element, so no `downloads` permission.
 - Every adapter call returns `AdapterResult`, never throws. Unexpected payload
   shape → `needs-update`. 401/403 → `unauthenticated`. The panel shows a banner
   for these states and keeps working on already indexed data.
+- `listConversations()` returns `{ items, complete }`. `complete` is true only when
+  the items are the vendor's whole list (every page fetched). A DOM fallback or a
+  paging run that stopped early is `complete: false`. The indexer deletes local
+  records (metadata, folder membership, search index) of conversations missing
+  from a complete list; it never prunes from a partial one.
 - Conversation keys are `${vendorId}:${conversationId}` everywhere in storage.
 - A conversation lives in at most one folder (move semantics).
 - `data-testid` attributes on interactive elements; e2e tests rely on them.

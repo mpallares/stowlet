@@ -4,7 +4,7 @@ import {
   type ConversationKey,
   type VendorAdapter,
 } from '@gaveta/shared';
-import { markIndexed, saveSerializedIndex, upsertSummaries } from '@/db';
+import { markIndexed, pruneMissing, saveSerializedIndex, upsertSummaries } from '@/db';
 import { log } from '@/lib/log';
 import { docFromConversation, previewOf, type SearchIndex } from './SearchIndex';
 
@@ -22,12 +22,14 @@ export interface SyncOptions {
 }
 
 export type SyncOutcome =
-  | { ok: true; listed: number; indexed: number; failed: number }
+  | { ok: true; listed: number; indexed: number; failed: number; removed: number }
   | { ok: false; error: AdapterError };
 
 /**
  * Lists conversations through the adapter, upserts metadata, then fetches and
  * indexes only the ones whose `updatedAt` moved since they were last indexed.
+ * When the list is complete, conversations the vendor no longer has are removed
+ * locally too (metadata, folder membership and search index).
  */
 export async function syncVendor(
   adapter: VendorAdapter,
@@ -37,7 +39,17 @@ export async function syncVendor(
   const listed = await adapter.listConversations();
   if (!listed.ok) return { ok: false, error: listed.error };
 
-  const stale = await upsertSummaries(adapter.id, listed.value);
+  const { items, complete } = listed.value;
+  const stale = await upsertSummaries(adapter.id, items);
+  let removed = 0;
+  if (complete) {
+    const gone = await pruneMissing(
+      adapter.id,
+      items.map((s) => s.id),
+    );
+    for (const key of gone) index.remove(key);
+    removed = gone.length;
+  }
   const queue = stale.slice(0, opts.maxFetch ?? 200);
   const total = queue.length;
   let done = 0;
@@ -60,14 +72,15 @@ export async function syncVendor(
   const workers = Array.from({ length: Math.max(1, opts.concurrency ?? 2) }, worker);
   await Promise.all(workers);
 
-  if (indexed > 0) await saveSerializedIndex(index.toJSON(), index.size);
+  if (indexed > 0 || removed > 0) await saveSerializedIndex(index.toJSON(), index.size);
   log.info('indexer', 'sync-complete', {
     vendor: adapter.id,
-    listed: listed.value.length,
+    listed: items.length,
     indexed,
     failed,
+    removed,
   });
-  return { ok: true, listed: listed.value.length, indexed, failed };
+  return { ok: true, listed: items.length, indexed, failed, removed };
 }
 
 async function indexOne(
