@@ -21,7 +21,9 @@ contract in `shared/src/adapters/VendorAdapter.ts` and implement it per vendor.
 ## Stack (fixed)
 
 - pnpm workspace: `extension/` (WXT + React 19 + TypeScript + Tailwind 4),
-  `shared/` (types + adapter contract), `web/` (Next.js placeholder).
+  `shared/` (types + adapter contract), `web/` (Next.js static site: landing, privacy,
+  terms, support; serves the remote config at `/config/v1/config.json`; external
+  values live in `web/src/config.ts`).
 - UI mounted with WXT `createShadowRootUi`; styles stay inside the shadow root.
 - State: Zustand (vanilla store + `useGaveta` selector hook).
 - Persistence: Dexie (IndexedDB). Search: MiniSearch serialised into Dexie.

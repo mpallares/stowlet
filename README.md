@@ -70,8 +70,8 @@ is used as a read-only fallback for the conversation list.
 On startup the background worker fetches `https://config.gaveta.app/v1/config.json`
 (per-adapter `enabled` flags plus an optional notice), caches it in
 `chrome.storage.local` for six hours and falls back to a bundled default when
-offline. The stub lives in `web/public/v1/config.json`. The host must send
-`Access-Control-Allow-Origin: *`, which `web/next.config.ts` does.
+offline. The stub lives in `web/public/config/v1/config.json`. The host must send
+`Access-Control-Allow-Origin: *`, which `web/vercel.json` sets for `/config/*`.
 
 ## License
 

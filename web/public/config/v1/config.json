@@ -5,7 +5,7 @@
     "claude": { "enabled": true },
     "gemini": { "enabled": false },
     "grok": { "enabled": false },
-    "mock": { "enabled": true }
+    "mock": { "enabled": false }
   },
   "notice": ""
 }
