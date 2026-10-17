@@ -72,7 +72,7 @@ export function Menu({ trigger, children, align = 'right', testId }: MenuProps) 
           data-testid={testId}
           role="menu"
           style={{ visibility: 'hidden' }}
-          className="fixed z-30 min-w-40 rounded-md border border-(--g-border) bg-(--g-bg-elevated) p-1 text-xs shadow-lg"
+          className="fixed z-30 min-w-52 rounded-lg border border-(--g-border) bg-(--g-bg-elevated) p-1.5 text-[13px] shadow-xl shadow-black/20"
         >
           {children(() => setOpen(false))}
         </div>
@@ -86,21 +86,59 @@ export function MenuItem({
   children,
   danger,
   testId,
+  icon,
+  trailing,
+  selected,
 }: {
   onClick: () => void;
   children: ReactNode;
   danger?: boolean;
   testId?: string;
+  /** Leading 14px icon. */
+  icon?: ReactNode;
+  /** Right-aligned badge or check mark. */
+  trailing?: ReactNode;
+  /** Marks the current choice in a pick-one list. */
+  selected?: boolean;
 }) {
   return (
     <button
       type="button"
-      role="menuitem"
+      role={selected === undefined ? 'menuitem' : 'menuitemradio'}
+      aria-checked={selected}
       data-testid={testId}
       onClick={onClick}
-      className={`block w-full rounded px-2 py-1.5 text-left hover:bg-(--g-bg-hover) ${danger ? 'text-red-500' : ''}`}
+      className={`flex w-full items-center gap-2 rounded-md px-2 py-1.5 text-left outline-none hover:bg-(--g-bg-hover) focus-visible:bg-(--g-bg-hover) ${
+        danger ? 'text-red-500' : ''
+      }`}
     >
-      {children}
+      {icon && (
+        <span className="flex w-3.5 shrink-0 justify-center text-(--g-fg-muted)">{icon}</span>
+      )}
+      <span className="min-w-0 flex-1 truncate">{children}</span>
+      {trailing && <span className="shrink-0">{trailing}</span>}
     </button>
+  );
+}
+
+/** Small uppercase heading inside a menu. */
+export function MenuLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="px-2 pt-2 pb-1 text-[11px] font-semibold tracking-wide text-(--g-fg-muted) uppercase">
+      {children}
+    </p>
+  );
+}
+
+export function MenuSeparator() {
+  return <div className="my-1.5 border-t border-(--g-border)" />;
+}
+
+/** "Pro" pill used next to gated actions. */
+export function ProBadge() {
+  return (
+    <span className="rounded bg-(--g-accent) px-1 py-px text-[10px] font-semibold text-white">
+      Pro
+    </span>
   );
 }

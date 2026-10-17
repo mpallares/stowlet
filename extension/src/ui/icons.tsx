@@ -71,3 +71,8 @@ export const IconDrawer = (p: P) => (
     <path d="M3 12h18M10 8h4M10 16h4" />
   </svg>
 );
+export const IconCheck = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M20 6 9 17l-5-5" />
+  </svg>
+);

@@ -2,6 +2,7 @@ import { newId } from '@/lib/id';
 import { getDb, type Folder } from './schema';
 
 export const FOLDER_COLORS = [
+  '#f97316',
   '#3b82f6',
   '#10b981',
   '#f59e0b',

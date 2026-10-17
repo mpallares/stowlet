@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { folderLimit } from '@gaveta/shared';
 import { childrenOf } from '@/store/gavetaStore';
 import { useGaveta } from '@/store/context';
-import { isConversationDrag, readDragKey } from './dnd';
+import { readDragKey, useDropTarget } from './dnd';
 import { FolderNode } from './FolderNode';
 import { IconPin, IconPlus } from './icons';
 import { InlineInput } from './InlineInput';
@@ -17,7 +17,8 @@ export function FolderTree() {
   const moveToFolder = useGaveta((s) => s.moveToFolder);
   const tier = useGaveta((s) => s.license.tier);
   const [creating, setCreating] = useState(false);
-  const [unfiledOver, setUnfiledOver] = useState(false);
+  const { over: unfiledOver, handlers: unfiledHandlers, reset: resetUnfiled } = useDropTarget();
+  const dragging = useGaveta((s) => s.dragging);
 
   const roots = childrenOf(folders, null);
   const pinnedCount = conversations.filter((c) => c.pinned === 1).length;
@@ -38,13 +39,13 @@ export function FolderTree() {
       type="button"
       data-testid={testId}
       onClick={onClick}
-      className={`flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs ${
+      className={`flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] ${
         active ? 'bg-(--g-bg-selected)' : 'hover:bg-(--g-bg-hover)'
       }`}
       {...extra}
     >
       <span className="flex-1 text-left">{label}</span>
-      <span className="text-[10px] text-(--g-fg-muted)">{count}</span>
+      <span className="text-[11px] text-(--g-fg-muted)">{count}</span>
     </button>
   );
 
@@ -61,13 +62,13 @@ export function FolderTree() {
         type="button"
         data-testid="view-pinned"
         onClick={() => setView({ kind: 'pinned' })}
-        className={`flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs ${
+        className={`flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] ${
           view.kind === 'pinned' ? 'bg-(--g-bg-selected)' : 'hover:bg-(--g-bg-hover)'
         }`}
       >
         <IconPin filled />
         <span className="flex-1 text-left">Pinned</span>
-        <span className="text-[10px] text-(--g-fg-muted)">{pinnedCount}</span>
+        <span className="text-[11px] text-(--g-fg-muted)">{pinnedCount}</span>
       </button>
       {navButton(
         view.kind === 'unfiled',
@@ -76,25 +77,22 @@ export function FolderTree() {
         () => setView({ kind: 'unfiled' }),
         'view-unfiled',
         {
-          className: `flex w-full items-center gap-1.5 rounded px-2 py-1 text-xs ${
+          className: `flex w-full items-center gap-1.5 rounded-md px-2.5 py-1.5 text-[13px] transition-[background-color,box-shadow] duration-100 ${
             view.kind === 'unfiled' ? 'bg-(--g-bg-selected)' : 'hover:bg-(--g-bg-hover)'
-          } ${unfiledOver ? 'ring-2 ring-(--g-accent)' : ''}`,
-          onDragOver: (e) => {
-            if (!isConversationDrag(e)) return;
-            e.preventDefault();
-            setUnfiledOver(true);
-          },
-          onDragLeave: () => setUnfiledOver(false),
+          } ${dragging && !unfiledOver ? 'outline-1 outline-dashed outline-(--g-accent) -outline-offset-1' : ''} ${
+            unfiledOver ? 'bg-(--g-accent-soft) ring-2 ring-(--g-accent) ring-inset' : ''
+          }`,
+          ...unfiledHandlers,
           onDrop: (e) => {
             e.preventDefault();
-            setUnfiledOver(false);
+            resetUnfiled();
             const key = readDragKey(e);
             if (key) void moveToFolder(key, null);
           },
         },
       )}
 
-      <div className="mt-2 flex items-center justify-between px-2 text-[10px] font-semibold tracking-wide text-(--g-fg-muted) uppercase">
+      <div className="mt-2 flex items-center justify-between px-2 text-[11px] font-semibold tracking-wide text-(--g-fg-muted) uppercase">
         <span>Folders</span>
         <span className="flex items-center gap-1">
           <span data-testid="folder-limit">{limitLabel}</span>
@@ -125,7 +123,7 @@ export function FolderTree() {
       )}
 
       {roots.length === 0 && !creating ? (
-        <p className="px-2 py-1 text-[11px] text-(--g-fg-muted)">
+        <p className="px-2 py-1 text-xs text-(--g-fg-muted)">
           No folders yet. Drag a chat onto a folder to file it.
         </p>
       ) : (

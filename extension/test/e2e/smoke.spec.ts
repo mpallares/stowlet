@@ -38,11 +38,21 @@ test('create folder → add chat → search → export', async ({ context }) => 
     page.getByTestId('conversation-list').locator('li[data-conversation-key]'),
   ).toHaveCount(1);
 
-  // Search by message content (the word "acetone" only appears in a message, not a title).
+  // Free tier: a word that only appears inside messages is counted, not shown.
   await page.getByTestId('search-input').fill('acetone');
   const results = page.getByTestId('search-results');
+  await expect(results.locator('li[data-conversation-key]')).toHaveCount(0);
+  await expect(results.getByTestId('pro-matches')).toContainText('1 more match');
+
+  // Title matches still work on Free.
+  await page.getByTestId('search-input').fill('sourdough');
   await expect(results.locator('li[data-conversation-key]')).toHaveCount(1);
   await expect(results.getByTestId('conversation-mock-0001')).toBeVisible();
+
+  // JSON export is gated on Free.
+  await results.getByTestId('export-button').click();
+  await page.getByTestId('export-json').click();
+  await expect(page.getByTestId('upgrade-state')).toHaveAttribute('data-reason', 'json-export');
 
   // Export as Markdown triggers a download.
   await results.getByTestId('export-button').click();

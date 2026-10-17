@@ -6,7 +6,7 @@ export function SearchBox() {
   const setQuery = useGaveta((s) => s.setQuery);
   return (
     <div className="relative">
-      <span className="pointer-events-none absolute top-1/2 left-2 -translate-y-1/2 text-(--g-fg-muted)">
+      <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-(--g-fg-muted)">
         <IconSearch />
       </span>
       <input
@@ -17,7 +17,7 @@ export function SearchBox() {
         placeholder="Search titles and messages"
         value={query}
         onChange={(e) => setQuery(e.target.value)}
-        className="w-full rounded-md border border-(--g-border) bg-(--g-bg) py-1.5 pr-7 pl-7 text-xs outline-none focus:border-(--g-accent)"
+        className="w-full rounded-md border border-(--g-border) bg-(--g-bg) py-2 pr-8 pl-8 text-[13px] outline-none focus:border-(--g-accent)"
       />
       {query !== '' && (
         <button

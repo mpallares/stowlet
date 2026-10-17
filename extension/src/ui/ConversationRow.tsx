@@ -1,10 +1,11 @@
 import type { ConversationMeta } from '@/db';
 import { keyOf } from '@/store/gavetaStore';
 import { useGaveta } from '@/store/context';
+import { can } from '@/entitlements';
 import { relativeTime } from '@/lib/time';
 import { setDragKey } from './dnd';
-import { IconDownload, IconPin } from './icons';
-import { Menu, MenuItem } from './Menu';
+import { IconCheck, IconDownload, IconFolder, IconPin } from './icons';
+import { Menu, MenuItem, MenuLabel, MenuSeparator, ProBadge } from './Menu';
 
 interface Props {
   meta: ConversationMeta;
@@ -20,7 +21,10 @@ export function ConversationRow({ meta, subtitle, conversationUrl }: Props) {
   const current = useGaveta((s) => s.currentConversationId);
   const togglePinned = useGaveta((s) => s.togglePinned);
   const moveToFolder = useGaveta((s) => s.moveToFolder);
+  const dragging = useGaveta((s) => s.dragging);
+  const setDragging = useGaveta((s) => s.setDragging);
   const exportConversation = useGaveta((s) => s.exportConversation);
+  const tier = useGaveta((s) => s.license.tier);
 
   const item = items.find((i) => i.id === key);
   const folder = item ? folders.find((f) => f.id === item.folderId) : undefined;
@@ -31,10 +35,14 @@ export function ConversationRow({ meta, subtitle, conversationUrl }: Props) {
       draggable
       data-testid={`conversation-${meta.conversationId}`}
       data-conversation-key={key}
-      onDragStart={(e) => setDragKey(e, key)}
-      className={`group flex cursor-grab items-start gap-1 rounded px-2 py-1.5 text-xs active:cursor-grabbing ${
+      onDragStart={(e) => {
+        setDragKey(e, key);
+        setDragging(key);
+      }}
+      onDragEnd={() => setDragging(null)}
+      className={`group flex cursor-grab items-start gap-1 rounded-md px-2.5 py-2 text-[13px] transition-opacity active:cursor-grabbing ${
         isCurrent ? 'bg-(--g-bg-selected)' : 'hover:bg-(--g-bg-hover)'
-      }`}
+      } ${dragging === key ? 'opacity-40' : ''}`}
     >
       <a
         href={conversationUrl(meta.conversationId)}
@@ -43,10 +51,10 @@ export function ConversationRow({ meta, subtitle, conversationUrl }: Props) {
         data-testid="conversation-link"
       >
         <span className="block truncate font-medium">{meta.title || 'Untitled'}</span>
-        <span className="block truncate text-[10px] text-(--g-fg-muted)">
+        <span className="block truncate text-[11px] text-(--g-fg-muted)">
           {subtitle ?? meta.preview}
         </span>
-        <span className="mt-0.5 flex items-center gap-1 text-[10px] text-(--g-fg-muted)">
+        <span className="mt-0.5 flex items-center gap-1 text-[11px] text-(--g-fg-muted)">
           {folder && (
             <span
               className="inline-flex items-center gap-1 rounded bg-(--g-bg-hover) px-1"
@@ -89,44 +97,62 @@ export function ConversationRow({ meta, subtitle, conversationUrl }: Props) {
         >
           {(close) => (
             <>
+              <MenuLabel>Export</MenuLabel>
               <MenuItem
                 testId="export-markdown"
+                icon={<IconDownload />}
                 onClick={() => {
                   void exportConversation(key, 'markdown');
                   close();
                 }}
               >
-                Export as Markdown
+                Markdown
               </MenuItem>
               <MenuItem
                 testId="export-json"
+                icon={<IconDownload />}
+                trailing={can(tier, 'json-export') ? undefined : <ProBadge />}
                 onClick={() => {
                   void exportConversation(key, 'json');
                   close();
                 }}
               >
-                Export as JSON
+                JSON
               </MenuItem>
-              <div className="my-1 border-t border-(--g-border)" />
-              <label className="block px-2 py-1 text-[10px] text-(--g-fg-muted)">
-                Move to folder
-                <select
-                  data-testid="move-select"
-                  className="mt-1 block w-full rounded border border-(--g-border) bg-(--g-bg) px-1 py-0.5 text-xs"
-                  value={item?.folderId ?? ''}
-                  onChange={(e) => {
-                    void moveToFolder(key, e.target.value === '' ? null : e.target.value);
+              <MenuSeparator />
+              <MenuLabel>Move to</MenuLabel>
+              <div data-testid="move-select">
+                <MenuItem
+                  testId="move-unfiled"
+                  icon={<IconFolder />}
+                  selected={!item}
+                  trailing={!item ? <IconCheck className="text-(--g-accent)" /> : undefined}
+                  onClick={() => {
+                    void moveToFolder(key, null);
                     close();
                   }}
                 >
-                  <option value="">Unfiled</option>
-                  {folders.map((f) => (
-                    <option key={f.id} value={f.id}>
+                  Unfiled
+                </MenuItem>
+                {folders.map((f) => {
+                  const active = item?.folderId === f.id;
+                  return (
+                    <MenuItem
+                      key={f.id}
+                      testId={`move-${f.id}`}
+                      icon={<IconFolder style={{ color: f.color }} />}
+                      selected={active}
+                      trailing={active ? <IconCheck className="text-(--g-accent)" /> : undefined}
+                      onClick={() => {
+                        void moveToFolder(key, f.id);
+                        close();
+                      }}
+                    >
                       {f.name}
-                    </option>
-                  ))}
-                </select>
-              </label>
+                    </MenuItem>
+                  );
+                })}
+              </div>
             </>
           )}
         </Menu>

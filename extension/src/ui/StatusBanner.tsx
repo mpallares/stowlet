@@ -1,4 +1,5 @@
 import { useGaveta } from '@/store/context';
+import { PRICING_URL, UPGRADE_COPY } from '@/entitlements';
 
 const TEXT: Partial<Record<ReturnType<typeof useStatus>, string>> = {
   'needs-update':
@@ -16,46 +17,59 @@ export function StatusBanner() {
   const status = useStatus();
   const notice = useGaveta((s) => s.notice);
   const progress = useGaveta((s) => s.progress);
-  const limitHit = useGaveta((s) => s.limitHit);
-  const dismissLimit = useGaveta((s) => s.dismissLimit);
+  const upgrade = useGaveta((s) => s.upgrade);
+  const dismissUpgrade = useGaveta((s) => s.dismissUpgrade);
   const lastError = useGaveta((s) => s.lastError);
   const dismissError = useGaveta((s) => s.dismissError);
 
   const text = TEXT[status];
   return (
     <div className="flex flex-col gap-1" data-testid="status" data-status={status}>
-      {notice && <p className="rounded bg-(--g-bg-hover) px-2 py-1 text-[11px]">{notice}</p>}
+      {notice && <p className="rounded bg-(--g-bg-hover) px-2 py-1 text-xs">{notice}</p>}
       {text && (
         <p
-          className="rounded bg-amber-500/15 px-2 py-1 text-[11px] text-amber-700 dark:text-amber-300"
+          className="rounded bg-amber-500/15 px-2 py-1 text-xs text-amber-700 dark:text-amber-300"
           role="status"
         >
           {text}
         </p>
       )}
       {status === 'syncing' && progress && progress.total > 0 && (
-        <p className="px-2 text-[10px] text-(--g-fg-muted)" role="status">
+        <p className="px-2 text-[11px] text-(--g-fg-muted)" role="status">
           Indexing {progress.done}/{progress.total}
         </p>
       )}
-      {limitHit && (
+      {upgrade && (
         <div
-          className="rounded border border-(--g-accent) bg-(--g-bg-elevated) px-2 py-2 text-[11px]"
+          className="rounded-lg border border-(--g-accent) bg-(--g-accent-soft) px-3 py-2.5 text-xs"
           role="alert"
           data-testid="upgrade-state"
+          data-reason={upgrade}
         >
-          <p className="font-semibold">Free plan: 5 folders</p>
-          <p className="text-(--g-fg-muted)">
-            Upgrade to Pro for unlimited folders. Payments are coming soon.
-          </p>
-          <button type="button" onClick={dismissLimit} className="mt-1 text-(--g-accent) underline">
-            Got it
-          </button>
+          <p className="font-semibold">{UPGRADE_COPY[upgrade].title}</p>
+          <p className="mt-0.5 text-(--g-fg-muted)">{UPGRADE_COPY[upgrade].body}</p>
+          <div className="mt-2 flex items-center gap-2">
+            <a
+              href={PRICING_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="rounded-md bg-(--g-accent) px-2 py-1 font-semibold text-white hover:opacity-90"
+            >
+              See plans
+            </a>
+            <button
+              type="button"
+              onClick={dismissUpgrade}
+              className="rounded-md px-2 py-1 text-(--g-fg-muted) hover:bg-(--g-bg-hover)"
+            >
+              Not now
+            </button>
+          </div>
         </div>
       )}
       {lastError && (
         <p
-          className="flex items-start gap-2 rounded bg-red-500/10 px-2 py-1 text-[11px] text-red-600"
+          className="flex items-start gap-2 rounded bg-red-500/10 px-2 py-1 text-xs text-red-600"
           role="alert"
         >
           <span className="flex-1">{lastError}</span>

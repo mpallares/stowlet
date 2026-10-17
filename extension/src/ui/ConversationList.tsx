@@ -1,10 +1,14 @@
 import { visibleConversations } from '@/store/gavetaStore';
 import { useGaveta } from '@/store/context';
+import { can } from '@/entitlements';
 import { ConversationRow } from './ConversationRow';
 
 export function ConversationList({ conversationUrl }: { conversationUrl: (id: string) => string }) {
   const query = useGaveta((s) => s.query);
   const hits = useGaveta((s) => s.hits);
+  const hiddenMatches = useGaveta((s) => s.hiddenMatches);
+  const requirePro = useGaveta((s) => s.requirePro);
+  const contentSearch = useGaveta((s) => can(s.license.tier, 'content-search'));
   const conversations = useGaveta((s) => s.conversations);
   const view = useGaveta((s) => s.view);
   const items = useGaveta((s) => s.items);
@@ -18,11 +22,13 @@ export function ConversationList({ conversationUrl }: { conversationUrl: (id: st
       .filter((r) => r.meta !== undefined);
     return (
       <section aria-label="Search results" data-testid="search-results">
-        <p className="px-2 py-1 text-[10px] text-(--g-fg-muted)">
-          {rows.length} result{rows.length === 1 ? '' : 's'}
+        <p className="px-2 py-1 text-[11px] text-(--g-fg-muted)">
+          {contentSearch
+            ? `${rows.length} result${rows.length === 1 ? '' : 's'}`
+            : `${rows.length} title match${rows.length === 1 ? '' : 'es'}`}
         </p>
-        {rows.length === 0 ? (
-          <p className="px-2 py-4 text-center text-xs text-(--g-fg-muted)">No matches.</p>
+        {rows.length === 0 && hiddenMatches === 0 ? (
+          <p className="px-2 py-4 text-center text-[13px] text-(--g-fg-muted)">No matches.</p>
         ) : (
           <ul>
             {rows.map(({ hit, meta }) =>
@@ -32,7 +38,7 @@ export function ConversationList({ conversationUrl }: { conversationUrl: (id: st
                   meta={meta}
                   conversationUrl={conversationUrl}
                   subtitle={
-                    hit.matchedFields.includes('content')
+                    contentSearch && hit.matchedFields.includes('content')
                       ? `matches in messages · ${meta.preview}`
                       : meta.preview
                   }
@@ -40,6 +46,19 @@ export function ConversationList({ conversationUrl }: { conversationUrl: (id: st
               ) : null,
             )}
           </ul>
+        )}
+        {hiddenMatches > 0 && (
+          <button
+            type="button"
+            data-testid="pro-matches"
+            onClick={() => requirePro('content-search')}
+            className="mx-2 my-1 block w-[calc(100%-1rem)] rounded border border-dashed border-(--g-accent) px-2 py-1.5 text-left text-xs text-(--g-fg-muted) hover:bg-(--g-bg-hover)"
+          >
+            {hiddenMatches} more match{hiddenMatches === 1 ? '' : 'es'} inside your chats
+            <span className="ml-1 rounded bg-(--g-accent) px-1 text-[11px] font-semibold text-white">
+              Pro
+            </span>
+          </button>
         )}
       </section>
     );
@@ -57,11 +76,11 @@ export function ConversationList({ conversationUrl }: { conversationUrl: (id: st
 
   return (
     <section aria-label={title} data-testid="conversation-list">
-      <p className="px-2 py-1 text-[10px] font-semibold tracking-wide text-(--g-fg-muted) uppercase">
+      <p className="px-2 py-1 text-[11px] font-semibold tracking-wide text-(--g-fg-muted) uppercase">
         {title}
       </p>
       {rows.length === 0 ? (
-        <p className="px-2 py-4 text-center text-xs text-(--g-fg-muted)">
+        <p className="px-2 py-4 text-center text-[13px] text-(--g-fg-muted)">
           {status === 'syncing' ? 'Loading…' : 'Nothing here yet.'}
         </p>
       ) : (

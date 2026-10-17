@@ -2,11 +2,12 @@ import { useState } from 'react';
 import type { Folder } from '@/db';
 import { childrenOf, descendantIds } from '@/store/gavetaStore';
 import { useGaveta } from '@/store/context';
+import { can } from '@/entitlements';
 import { ColorPicker } from './ColorPicker';
-import { isConversationDrag, readDragKey } from './dnd';
+import { readDragKey, useDropTarget } from './dnd';
 import { IconChevron, IconFolder, IconMore } from './icons';
 import { InlineInput } from './InlineInput';
-import { Menu, MenuItem } from './Menu';
+import { Menu, MenuItem, ProBadge } from './Menu';
 
 interface Props {
   folder: Folder;
@@ -25,9 +26,12 @@ export function FolderNode({ folder, depth }: Props) {
   const setFolderColor = useGaveta((s) => s.setFolderColor);
   const createFolder = useGaveta((s) => s.createFolder);
   const moveToFolder = useGaveta((s) => s.moveToFolder);
+  const dragging = useGaveta((s) => s.dragging);
+  const tier = useGaveta((s) => s.license.tier);
+  const requirePro = useGaveta((s) => s.requirePro);
 
   const [mode, setMode] = useState<'idle' | 'rename' | 'new-child' | 'color'>('idle');
-  const [dragOver, setDragOver] = useState(false);
+  const { over: dragOver, handlers: dropHandlers, reset: resetDrop } = useDropTarget();
 
   const children = childrenOf(folders, folder.id);
   const subtree = descendantIds(folders, folder.id);
@@ -37,20 +41,17 @@ export function FolderNode({ folder, depth }: Props) {
   return (
     <li data-testid={`folder-${folder.id}`} data-folder-name={folder.name}>
       <div
-        className={`group flex items-center gap-1 rounded px-1 py-1 text-xs ${
+        data-drop-target={dragging ? (dragOver ? 'over' : 'ready') : undefined}
+        className={`group flex items-center gap-1 rounded-md px-1.5 py-1.5 text-[13px] transition-[background-color,box-shadow] duration-100 ${
           selected ? 'bg-(--g-bg-selected)' : 'hover:bg-(--g-bg-hover)'
-        } ${dragOver ? 'ring-2 ring-(--g-accent)' : ''}`}
+        } ${dragging && !dragOver ? 'outline-1 outline-dashed outline-(--g-accent) -outline-offset-1' : ''} ${
+          dragOver ? 'bg-(--g-accent-soft) ring-2 ring-(--g-accent) ring-inset' : ''
+        }`}
         style={{ paddingLeft: 4 + depth * 12 }}
-        onDragOver={(e) => {
-          if (!isConversationDrag(e)) return;
-          e.preventDefault();
-          e.dataTransfer.dropEffect = 'move';
-          if (!dragOver) setDragOver(true);
-        }}
-        onDragLeave={() => setDragOver(false)}
+        {...dropHandlers}
         onDrop={(e) => {
           e.preventDefault();
-          setDragOver(false);
+          resetDrop();
           const key = readDragKey(e);
           if (key) void moveToFolder(key, folder.id);
         }}
@@ -88,9 +89,15 @@ export function FolderNode({ folder, depth }: Props) {
             {folder.name}
           </button>
         )}
-        <span className="text-[10px] text-(--g-fg-muted)" data-testid="folder-count">
-          {count}
-        </span>
+        {dragOver ? (
+          <span className="rounded bg-(--g-accent) px-1.5 py-0.5 text-[11px] font-semibold text-white">
+            Drop here
+          </span>
+        ) : (
+          <span className="text-[11px] text-(--g-fg-muted)" data-testid="folder-count">
+            {count}
+          </span>
+        )}
         <Menu
           testId="folder-menu"
           trigger={(open) => (
@@ -118,8 +125,9 @@ export function FolderNode({ folder, depth }: Props) {
               </MenuItem>
               <MenuItem
                 testId="folder-action-new-child"
+                trailing={can(tier, 'subfolders') ? undefined : <ProBadge />}
                 onClick={() => {
-                  setMode('new-child');
+                  if (requirePro('subfolders')) setMode('new-child');
                   close();
                 }}
               >

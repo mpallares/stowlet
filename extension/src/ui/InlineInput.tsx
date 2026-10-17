@@ -35,7 +35,7 @@ export function InlineInput({ initial = '', placeholder, onSubmit, onCancel, tes
         onBlur={() => {
           if (value.trim() === '') onCancel();
         }}
-        className="min-w-0 flex-1 rounded border border-(--g-border) bg-(--g-bg) px-2 py-1 text-xs outline-none focus:border-(--g-accent)"
+        className="min-w-0 flex-1 rounded border border-(--g-border) bg-(--g-bg) px-2 py-1 text-[13px] outline-none focus:border-(--g-accent)"
       />
     </form>
   );
