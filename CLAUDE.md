@@ -131,6 +131,8 @@ first chat-capable one; the conversation payload is a message tree walked from
 pnpm lint        pnpm typecheck     pnpm test      pnpm test:e2e     pnpm build
 pnpm --filter @gaveta/extension dev        # WXT dev server
 pnpm --filter @gaveta/extension build:e2e  # bundle with the localhost match
+pnpm demo:record                            # scripted landing-page demo video (see README)
+pnpm demo:stills                            # feature stills for the landing page from the mock page
 ```
 
 ## Phase 2 TODOs (not built yet)

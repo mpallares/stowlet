@@ -13,7 +13,9 @@
     "test": "pnpm --filter @gaveta/extension test",
     "test:e2e": "pnpm --filter @gaveta/extension test:e2e",
     "build": "pnpm -r --if-present build",
-    "dev": "pnpm --filter @gaveta/extension dev"
+    "dev": "pnpm --filter @gaveta/extension dev",
+    "demo:record": "pnpm --filter @gaveta/extension demo:record",
+    "demo:stills": "pnpm --filter @gaveta/extension demo:stills"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

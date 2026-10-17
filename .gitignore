@@ -12,3 +12,5 @@ extension/test/fixtures/chatgpt/*.json
 !extension/test/fixtures/chatgpt/.gitkeep
 extension/test/fixtures/claude/*.json
 !extension/test/fixtures/claude/.gitkeep
+extension/.demo-profile
+extension/.demo
