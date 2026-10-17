@@ -74,6 +74,12 @@ the actual file download with an anchor element, so no `downloads` permission.
   records (metadata, folder membership, search index) of conversations missing
   from a complete list; it never prunes from a partial one.
 - Conversation keys are `${vendorId}:${conversationId}` everywhere in storage.
+- Plan rules live only in `extension/src/entitlements.ts` (`can()`, `limits()`). Every
+  gated feature calls it; the store's `requirePro()` shows the upgrade banner. Free:
+  5 folders (no sub-folders), title search only, single-chat Markdown export. Pro:
+  unlimited folders + sub-folders, full-text content search, tags/notes, bulk export
+  (Markdown + JSON). Content is indexed for everyone; Free only sees title matches
+  plus a count of hidden content matches.
 - A conversation lives in at most one folder (move semantics).
 - `data-testid` attributes on interactive elements; e2e tests rely on them.
 - Prettier formats everything; ESLint flat config at the root.

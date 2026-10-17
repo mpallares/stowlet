@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { PLAN_SUMMARY } from '@/entitlements';
 import {
   DEFAULT_LICENSE_STATE,
   DEFAULT_REMOTE_CONFIG,
@@ -43,10 +44,8 @@ export function App() {
 
       <section className="flex flex-col gap-1">
         <h2 className="text-xs font-semibold tracking-wide text-gray-500 uppercase">Plan</h2>
-        <p data-testid="tier">
-          {license.tier === 'pro' ? 'Pro' : 'Free'}{' '}
-          <span className="text-xs text-gray-500">(5 folders on Free)</span>
-        </p>
+        <p data-testid="tier">{license.tier === 'pro' ? 'Pro' : 'Free'}</p>
+        <p className="text-xs text-gray-500">{PLAN_SUMMARY[license.tier]}</p>
       </section>
 
       <section className="flex flex-col gap-1">
@@ -66,7 +65,7 @@ export function App() {
         <button
           type="button"
           onClick={() => void save()}
-          className="rounded bg-blue-600 px-2 py-1 text-sm text-white hover:bg-blue-700"
+          className="rounded bg-orange-700 px-2 py-1 text-sm text-white hover:bg-orange-800"
         >
           {saved ? 'Saved' : 'Save key'}
         </button>

@@ -1,7 +1,6 @@
 import {
   conversationKey,
   DEFAULT_LICENSE_STATE,
-  folderLimit,
   type AdapterErrorCode,
   type Conversation,
   type ConversationKey,
@@ -11,6 +10,7 @@ import {
   type RemoteConfig,
   type VendorAdapter,
 } from '@gaveta/shared';
+import { can, limits, type Feature, type UpgradeReason } from '@/entitlements';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import * as db from '@/db';
 import type { ConversationMeta, Folder, FolderItem } from '@/db';
@@ -46,12 +46,16 @@ export interface GavetaState {
   expanded: Record<string, boolean>;
   query: string;
   hits: SearchHit[];
+  /** Content-only matches hidden from a Free user (title matches still show). */
+  hiddenMatches: number;
   panelOpen: boolean;
   currentConversationId: string | null;
   progress: SyncProgress | null;
-  /** Set when the user hit the free-tier folder cap. */
-  limitHit: boolean;
+  /** Set when the user tried something their plan does not include. */
+  upgrade: UpgradeReason | null;
   lastError: string | null;
+  /** Conversation currently being dragged, so drop targets can light up. */
+  dragging: ConversationKey | null;
 
   init: () => Promise<void>;
   sync: () => Promise<void>;
@@ -67,8 +71,11 @@ export interface GavetaState {
   moveToFolder: (key: ConversationKey, folderId: string | null) => Promise<void>;
   togglePinned: (key: ConversationKey) => Promise<void>;
   exportConversation: (key: ConversationKey, format: ExportFormat) => Promise<void>;
-  dismissLimit: () => void;
+  dismissUpgrade: () => void;
+  /** Returns true when allowed; otherwise shows the upgrade banner and returns false. */
+  requirePro: (feature: Feature) => boolean;
   dismissError: () => void;
+  setDragging: (key: ConversationKey | null) => void;
 }
 
 const STATUS_FOR_ERROR: Record<AdapterErrorCode, AdapterStatus> = {
@@ -90,7 +97,18 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
   return createStore<GavetaState>()((set, get) => {
     const runSearch = (): void => {
       const q = get().query;
-      set({ hits: q.trim() === '' ? [] : index.search(q) });
+      if (q.trim() === '') {
+        set({ hits: [], hiddenMatches: 0 });
+        return;
+      }
+      const all = index.search(q);
+      if (can(get().license.tier, 'content-search')) {
+        set({ hits: all, hiddenMatches: 0 });
+        return;
+      }
+      // Free: keep indexing content, but only surface title matches.
+      const titleHits = all.filter((h) => h.matchedFields.includes('title'));
+      set({ hits: titleHits, hiddenMatches: all.length - titleHits.length });
     };
 
     const guard = async (label: string, fn: () => Promise<void>): Promise<void> => {
@@ -113,11 +131,13 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
       expanded: {},
       query: '',
       hits: [],
+      hiddenMatches: 0,
       panelOpen: true,
       currentConversationId: adapter.getCurrentConversationId(),
       progress: null,
-      limitHit: false,
+      upgrade: null,
       lastError: null,
+      dragging: null,
 
       async init() {
         const [license, config, panelOpen, stored] = await Promise.all([
@@ -197,7 +217,8 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
       },
 
       async createFolder(name, parentId = null) {
-        const limit = folderLimit(get().license.tier);
+        if (parentId && !get().requirePro('subfolders')) return null;
+        const limit = limits(get().license.tier).folders;
         try {
           const folder = await db.createFolder({ name, parentId, limit });
           await get().refresh();
@@ -205,7 +226,7 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
           return folder;
         } catch (e) {
           if (e instanceof db.FolderLimitError) {
-            set({ limitHit: true });
+            set({ upgrade: 'folders' });
             return null;
           }
           set({ lastError: e instanceof Error ? e.message : 'Could not create folder' });
@@ -254,6 +275,7 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
 
       exportConversation: (key, format) =>
         guard('export', async () => {
+          if (format === 'json' && !get().requirePro('json-export')) return;
           const conversationId = key.slice(adapter.id.length + 1);
           const result = await adapter.getConversation(conversationId);
           if (!result.ok) {
@@ -264,11 +286,21 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
           deps.download(file);
         }),
 
-      dismissLimit() {
-        set({ limitHit: false });
+      dismissUpgrade() {
+        set({ upgrade: null });
+      },
+
+      requirePro(feature) {
+        if (can(get().license.tier, feature)) return true;
+        set({ upgrade: feature });
+        return false;
       },
       dismissError() {
         set({ lastError: null });
+      },
+
+      setDragging(key) {
+        if (get().dragging !== key) set({ dragging: key });
       },
     };
   });
