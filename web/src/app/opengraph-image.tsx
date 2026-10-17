@@ -24,8 +24,16 @@ export default function OpenGraphImage() {
       <div style={{ display: 'flex', alignItems: 'center', gap: 24 }}>
         <svg width="72" height="72" viewBox="0 0 32 32" fill="none">
           <rect width="32" height="32" rx="7" fill="#c2410c" />
-          <rect x="5" y="8" width="22" height="16" rx="3.5" stroke="#fff" strokeWidth="2" />
-          <rect x="12" y="15" width="8" height="2.4" rx="1.2" fill="#fff" />
+          <g
+            transform="translate(4 4)"
+            stroke="#fff"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <rect x="3" y="4" width="18" height="16" rx="2" />
+            <path d="M3 12h18M10 8h4M10 16h4" />
+          </g>
         </svg>
         <div style={{ fontSize: 56, fontWeight: 700 }}>{SITE_NAME}</div>
       </div>
