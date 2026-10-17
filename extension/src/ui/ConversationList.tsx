@@ -13,6 +13,7 @@ export function ConversationList({ conversationUrl }: { conversationUrl: (id: st
   const view = useGaveta((s) => s.view);
   const items = useGaveta((s) => s.items);
   const folders = useGaveta((s) => s.folders);
+  const tags = useGaveta((s) => s.tags);
   const status = useGaveta((s) => s.status);
 
   if (query.trim() !== '') {
@@ -72,7 +73,9 @@ export function ConversationList({ conversationUrl }: { conversationUrl: (id: st
         ? 'Pinned'
         : view.kind === 'unfiled'
           ? 'Unfiled'
-          : (folders.find((f) => f.id === view.id)?.name ?? 'Folder');
+          : view.kind === 'tag'
+            ? (tags.find((t) => t.id === view.id)?.name ?? 'Tag')
+            : (folders.find((f) => f.id === view.id)?.name ?? 'Folder');
 
   return (
     <section aria-label={title} data-testid="conversation-list">

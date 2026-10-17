@@ -76,3 +76,15 @@ export const IconCheck = (p: P) => (
     <path d="M20 6 9 17l-5-5" />
   </svg>
 );
+export const IconTag = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M20.6 13.4 13.4 20.6a2 2 0 0 1-2.8 0L3 13V3h10l7.6 7.6a2 2 0 0 1 0 2.8z" />
+    <circle cx="7.5" cy="7.5" r="1.5" fill="currentColor" />
+  </svg>
+);
+export const IconNote = (p: P) => (
+  <svg {...base(p)}>
+    <path d="M14 3H6a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z" />
+    <path d="M14 3v6h6M8 13h8M8 17h5" />
+  </svg>
+);

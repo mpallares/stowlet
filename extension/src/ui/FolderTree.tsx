@@ -6,6 +6,7 @@ import { readDragKey, useDropTarget } from './dnd';
 import { FolderNode } from './FolderNode';
 import { IconPin, IconPlus } from './icons';
 import { InlineInput } from './InlineInput';
+import { TagNode } from './TagNode';
 
 export function FolderTree() {
   const folders = useGaveta((s) => s.folders);
@@ -16,6 +17,7 @@ export function FolderTree() {
   const createFolder = useGaveta((s) => s.createFolder);
   const moveToFolder = useGaveta((s) => s.moveToFolder);
   const tier = useGaveta((s) => s.license.tier);
+  const tags = useGaveta((s) => s.tags);
   const [creating, setCreating] = useState(false);
   const { over: unfiledOver, handlers: unfiledHandlers, reset: resetUnfiled } = useDropTarget();
   const dragging = useGaveta((s) => s.dragging);
@@ -132,6 +134,19 @@ export function FolderTree() {
             <FolderNode key={f.id} folder={f} depth={0} />
           ))}
         </ul>
+      )}
+
+      {tags.length > 0 && (
+        <>
+          <div className="mt-2 px-2 text-[11px] font-semibold tracking-wide text-(--g-fg-muted) uppercase">
+            Tags
+          </div>
+          <ul data-testid="tag-list">
+            {tags.map((t) => (
+              <TagNode key={t.id} tag={t} />
+            ))}
+          </ul>
+        </>
       )}
     </nav>
   );

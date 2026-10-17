@@ -49,10 +49,19 @@ test('create folder → add chat → search → export', async ({ context }) => 
   await expect(results.locator('li[data-conversation-key]')).toHaveCount(1);
   await expect(results.getByTestId('conversation-mock-0001')).toBeVisible();
 
-  // JSON export is gated on Free.
+  // JSON export, tags, notes and folder export are gated on Free.
   await results.getByTestId('export-button').click();
   await page.getByTestId('export-json').click();
   await expect(page.getByTestId('upgrade-state')).toHaveAttribute('data-reason', 'json-export');
+  await results.getByTestId('export-button').click();
+  await page.getByTestId('new-tag').click();
+  await expect(page.getByTestId('upgrade-state')).toHaveAttribute('data-reason', 'tags');
+  await results.getByTestId('export-button').click();
+  await page.getByTestId('edit-note').click();
+  await expect(page.getByTestId('upgrade-state')).toHaveAttribute('data-reason', 'notes');
+  await folder.getByTestId('folder-menu-button').click();
+  await page.getByTestId('folder-export-markdown').click();
+  await expect(page.getByTestId('upgrade-state')).toHaveAttribute('data-reason', 'bulk-export');
 
   // Export as Markdown triggers a download.
   await results.getByTestId('export-button').click();
@@ -79,4 +88,64 @@ test('free tier blocks the sixth folder with an upgrade state', async ({ context
   }
   await expect(page.getByTestId('upgrade-state')).toBeVisible();
   await expect(page.getByTestId('folder-limit')).toHaveText('5/5');
+});
+
+test('pro tier: tags, notes and a folder zip export', async ({ context }) => {
+  // The background worker owns the license; flip it to Pro before the panel boots.
+  const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
+  await worker.evaluate(
+    "chrome.storage.sync.set({ license: { tier: 'pro', key: 'E2E', checkedAt: 0 } })",
+  );
+
+  const page = await context.newPage();
+  await page.goto('/');
+  await expect(page.getByTestId('status')).toHaveAttribute('data-status', 'ready', {
+    timeout: 15_000,
+  });
+  const row = page.getByTestId('conversation-mock-0001');
+  await expect(row).toBeVisible();
+
+  await page.getByTestId('new-folder-button').click();
+  await page.getByTestId('new-folder-input').fill('Cooking');
+  await page.getByTestId('new-folder-input').press('Enter');
+  const folder = page.locator('[data-folder-name="Cooking"]');
+  await row.dragTo(folder.getByTestId('folder-select'));
+  await expect(folder.getByTestId('folder-count')).toHaveText('1');
+
+  // Tag the chat with a brand-new tag.
+  await row.getByTestId('export-button').click();
+  await page.getByTestId('new-tag').click();
+  await page.getByTestId('new-tag-input').fill('bread');
+  await page.getByTestId('new-tag-input').press('Enter');
+  await expect(row.getByTestId('row-tag')).toHaveText('bread');
+  const tag = page.locator('[data-tag-name="bread"]');
+  await expect(tag.getByTestId('tag-count')).toHaveText('1');
+
+  // The tag view filters to that chat.
+  await tag.getByTestId('tag-select').click();
+  await expect(
+    page.getByTestId('conversation-list').locator('li[data-conversation-key]'),
+  ).toHaveCount(1);
+  await page.getByTestId('view-all').click();
+
+  // Add a note; it saves on blur.
+  await row.getByTestId('export-button').click();
+  await page.getByTestId('edit-note').click();
+  await page.getByTestId('note-input').fill('Feed twice a day');
+  await page.getByTestId('note-input').press('Tab');
+  await expect(row.getByTestId('row-note')).toBeVisible();
+
+  // Export the folder: one zip holding the Markdown of every chat in it.
+  await folder.getByTestId('folder-menu-button').click();
+  const downloadPromise = page.waitForEvent('download');
+  await page.getByTestId('folder-export-markdown').click();
+  const download = await downloadPromise;
+  expect(download.suggestedFilename()).toMatch(/-cooking\.zip$/);
+  const zip = await readDownload(download);
+  expect(zip.startsWith('PK')).toBe(true);
+  expect(zip).toContain('sourdough-starter-troubleshooting.md');
+  expect(zip).toContain('# Sourdough starter troubleshooting');
+  expect(zip).toContain('- Tags: bread');
+  expect(zip).toContain('Feed twice a day');
+  await expect(page.getByTestId('upgrade-state')).toHaveCount(0);
 });

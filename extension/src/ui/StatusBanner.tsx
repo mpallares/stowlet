@@ -17,6 +17,7 @@ export function StatusBanner() {
   const status = useStatus();
   const notice = useGaveta((s) => s.notice);
   const progress = useGaveta((s) => s.progress);
+  const exportProgress = useGaveta((s) => s.exportProgress);
   const upgrade = useGaveta((s) => s.upgrade);
   const dismissUpgrade = useGaveta((s) => s.dismissUpgrade);
   const lastError = useGaveta((s) => s.lastError);
@@ -37,6 +38,15 @@ export function StatusBanner() {
       {status === 'syncing' && progress && progress.total > 0 && (
         <p className="px-2 text-[11px] text-(--g-fg-muted)" role="status">
           Indexing {progress.done}/{progress.total}
+        </p>
+      )}
+      {exportProgress && (
+        <p
+          className="px-2 text-[11px] text-(--g-fg-muted)"
+          role="status"
+          data-testid="export-progress"
+        >
+          Exporting {exportProgress.done}/{exportProgress.total}…
         </p>
       )}
       {upgrade && (

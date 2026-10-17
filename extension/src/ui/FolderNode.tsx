@@ -5,9 +5,9 @@ import { useGaveta } from '@/store/context';
 import { can } from '@/entitlements';
 import { ColorPicker } from './ColorPicker';
 import { readDragKey, useDropTarget } from './dnd';
-import { IconChevron, IconFolder, IconMore } from './icons';
+import { IconChevron, IconDownload, IconFolder, IconMore } from './icons';
 import { InlineInput } from './InlineInput';
-import { Menu, MenuItem, ProBadge } from './Menu';
+import { Menu, MenuItem, MenuLabel, MenuSeparator, ProBadge } from './Menu';
 
 interface Props {
   folder: Folder;
@@ -26,9 +26,11 @@ export function FolderNode({ folder, depth }: Props) {
   const setFolderColor = useGaveta((s) => s.setFolderColor);
   const createFolder = useGaveta((s) => s.createFolder);
   const moveToFolder = useGaveta((s) => s.moveToFolder);
+  const exportFolder = useGaveta((s) => s.exportFolder);
   const dragging = useGaveta((s) => s.dragging);
   const tier = useGaveta((s) => s.license.tier);
   const requirePro = useGaveta((s) => s.requirePro);
+  const bulkBadge = can(tier, 'bulk-export') ? undefined : <ProBadge />;
 
   const [mode, setMode] = useState<'idle' | 'rename' | 'new-child' | 'color'>('idle');
   const { over: dragOver, handlers: dropHandlers, reset: resetDrop } = useDropTarget();
@@ -142,6 +144,31 @@ export function FolderNode({ folder, depth }: Props) {
               >
                 Change colour
               </MenuItem>
+              <MenuSeparator />
+              <MenuLabel>Export folder</MenuLabel>
+              <MenuItem
+                testId="folder-export-markdown"
+                icon={<IconDownload />}
+                trailing={bulkBadge}
+                onClick={() => {
+                  void exportFolder(folder.id, 'markdown');
+                  close();
+                }}
+              >
+                Markdown (.zip)
+              </MenuItem>
+              <MenuItem
+                testId="folder-export-json"
+                icon={<IconDownload />}
+                trailing={bulkBadge}
+                onClick={() => {
+                  void exportFolder(folder.id, 'json');
+                  close();
+                }}
+              >
+                JSON (.zip)
+              </MenuItem>
+              <MenuSeparator />
               <MenuItem
                 danger
                 testId="folder-action-delete"

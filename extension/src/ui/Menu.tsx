@@ -41,6 +41,11 @@ export function Menu({ trigger, children, align = 'right', testId }: MenuProps) 
   useEffect(() => {
     if (!open) return;
     const close = (): void => setOpen(false);
+    const onScroll = (e: Event): void => {
+      // A long menu scrolls on its own; only outside scrolling closes it.
+      if (menuRef.current && e.composedPath().includes(menuRef.current)) return;
+      close();
+    };
     const onDown = (e: Event): void => {
       const path = e.composedPath();
       const inside =
@@ -53,12 +58,12 @@ export function Menu({ trigger, children, align = 'right', testId }: MenuProps) 
     };
     document.addEventListener('mousedown', onDown, true);
     document.addEventListener('keydown', onKey, true);
-    document.addEventListener('scroll', close, true);
+    document.addEventListener('scroll', onScroll, true);
     window.addEventListener('resize', close);
     return () => {
       document.removeEventListener('mousedown', onDown, true);
       document.removeEventListener('keydown', onKey, true);
-      document.removeEventListener('scroll', close, true);
+      document.removeEventListener('scroll', onScroll, true);
       window.removeEventListener('resize', close);
     };
   }, [open]);
@@ -72,7 +77,7 @@ export function Menu({ trigger, children, align = 'right', testId }: MenuProps) 
           data-testid={testId}
           role="menu"
           style={{ visibility: 'hidden' }}
-          className="fixed z-30 min-w-52 rounded-lg border border-(--g-border) bg-(--g-bg-elevated) p-1.5 text-[13px] shadow-xl shadow-black/20"
+          className="fixed z-30 max-h-[70vh] min-w-52 overflow-y-auto rounded-lg border border-(--g-border) bg-(--g-bg-elevated) p-1.5 text-[13px] shadow-xl shadow-black/20"
         >
           {children(() => setOpen(false))}
         </div>
