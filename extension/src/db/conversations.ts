@@ -21,8 +21,8 @@ export async function getConversationMeta(
 }
 
 /**
- * Merges freshly listed summaries into the table. Keeps pins, tags and index
- * markers. Returns the keys whose content is stale and needs (re)indexing.
+ * Merges freshly listed summaries into the table. Keeps pins, tags, notes and
+ * index markers. Returns the keys whose content is stale and needs (re)indexing.
  */
 export async function upsertSummaries(
   vendorId: VendorId,
@@ -49,6 +49,7 @@ export async function upsertSummaries(
         pinned: prev?.pinned ?? 0,
         pinnedAt: prev?.pinnedAt ?? null,
         tagIds: prev?.tagIds ?? [],
+        note: prev?.note ?? '',
         preview: prev?.preview ?? '',
         lastSeenAt: now,
       };
@@ -91,6 +92,12 @@ export async function markIndexed(
     messageCount: info.messageCount,
     preview: info.preview,
   });
+}
+
+/** Stores the user's note; an empty or whitespace-only note clears it. */
+export async function setNote(key: ConversationKey, note: string): Promise<void> {
+  const updated = await getDb().conversations_meta.update(key, { note: note.trim() });
+  if (updated === 0) throw new Error('Conversation not found');
 }
 
 export async function setPinned(key: ConversationKey, pinned: boolean): Promise<void> {

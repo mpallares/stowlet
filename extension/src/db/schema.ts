@@ -45,6 +45,8 @@ export interface ConversationMeta {
   pinned: 0 | 1;
   pinnedAt: number | null;
   tagIds: string[];
+  /** The user's own note on the chat; '' when none. Personal text, never log it. */
+  note: string;
   /** Short, non-sensitive preview shown in search results. Chat content, so never log it. */
   preview: string;
   lastSeenAt: number;
