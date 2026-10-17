@@ -1,11 +1,11 @@
 import type { Metadata, Viewport } from 'next';
 import type { ReactNode } from 'react';
-import { DESCRIPTION, SITE_NAME, SITE_URL, TAGLINE } from '@/config';
+import { DESCRIPTION, LISTING_TITLE, SITE_NAME, SITE_URL } from '@/config';
 import './globals.css';
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
-  title: { default: `${SITE_NAME}: ${TAGLINE}`, template: `%s · ${SITE_NAME}` },
+  title: { default: LISTING_TITLE, template: `%s · ${SITE_NAME}` },
   description: DESCRIPTION,
   applicationName: SITE_NAME,
   openGraph: { siteName: SITE_NAME, type: 'website', locale: 'en_US' },

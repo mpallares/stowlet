@@ -13,7 +13,8 @@ export default defineConfig({
   ...(isE2E ? { outDirTemplate: '{{browser}}-mv{{manifestVersion}}-e2e' } : {}),
   manifest: {
     name: 'Stowlet',
-    description: 'Folders, full-text search and export for ChatGPT and Claude. Local-first.',
+    description:
+      "Folders & Search for ChatGPT & Claude. Stow every AI chat where you'll find it again.",
     permissions: ['storage'],
     host_permissions: contentMatches(isE2E),
   },

@@ -15,6 +15,7 @@ import {
   LEMON_SQUEEZY_ANNUAL_URL,
   LEMON_SQUEEZY_LIFETIME_URL,
   LEMON_SQUEEZY_MONTHLY_URL,
+  LISTING_TITLE,
   PRICE_ANNUAL,
   PRICE_LIFETIME,
   PRICE_LIFETIME_FOUNDING,
@@ -28,7 +29,7 @@ import {
 } from '@/config';
 
 export const metadata: Metadata = {
-  title: { absolute: `${SITE_NAME}: ${TAGLINE}` },
+  title: { absolute: LISTING_TITLE },
   description: DESCRIPTION,
   alternates: { canonical: '/' },
 };

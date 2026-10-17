@@ -1,8 +1,8 @@
 import { ImageResponse } from 'next/og';
-import { SITE_NAME, TAGLINE } from '@/config';
+import { LISTING_TITLE, SITE_NAME, TAGLINE } from '@/config';
 
 export const dynamic = 'force-static';
-export const alt = `${SITE_NAME}: ${TAGLINE}`;
+export const alt = LISTING_TITLE;
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
 

@@ -135,7 +135,7 @@ pnpm demo:stills                  # writes web/public/feature-{folders,search,ex
 
 ## Remote config
 
-On startup the background worker fetches `https://config.stowlet.app/v1/config.json`
+On startup the background worker fetches `https://stowlet.app/config/v1/config.json`
 (per-adapter `enabled` flags plus an optional notice), caches it in
 `chrome.storage.local` for six hours and falls back to a bundled default when
 offline. The stub lives in `web/public/config/v1/config.json`. The host must send

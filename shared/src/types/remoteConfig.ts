@@ -4,14 +4,14 @@ export interface AdapterFlags {
   enabled: boolean;
 }
 
-/** Static JSON served at https://config.stowlet.app/v1/config.json. Configuration only, never code. */
+/** Static JSON served at https://stowlet.app/config/v1/config.json. Configuration only, never code. */
 export interface RemoteConfig {
   version: number;
   adapters: Record<VendorId, AdapterFlags>;
   notice?: string;
 }
 
-export const REMOTE_CONFIG_URL = 'https://config.stowlet.app/v1/config.json';
+export const REMOTE_CONFIG_URL = 'https://stowlet.app/config/v1/config.json';
 
 export const DEFAULT_REMOTE_CONFIG: RemoteConfig = {
   version: 1,

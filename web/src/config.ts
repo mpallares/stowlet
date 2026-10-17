@@ -40,7 +40,10 @@ export const LEGAL_LAST_UPDATED = '2026-10-16';
 export const FREE_FOLDER_LIMIT = 5;
 
 export const SITE_NAME = 'Stowlet';
-export const TAGLINE = 'A drawer for your AI chats.';
+export const TAGLINE = "Stow every AI chat where you'll find it again.";
+/** Store-listing style subtitle, also the document title: "Stowlet — Folders & Search for …". */
+export const LISTING_SUBTITLE = 'Folders & Search for ChatGPT & Claude';
+export const LISTING_TITLE = `${SITE_NAME} — ${LISTING_SUBTITLE}`;
 export const DESCRIPTION =
   'Folders, full-text search and export for ChatGPT and Claude. Local-first: your chats never leave the browser.';
 
