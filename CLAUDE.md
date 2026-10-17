@@ -80,7 +80,12 @@ the actual file download with an anchor element, so no `downloads` permission.
   unlimited folders + sub-folders, full-text content search, tags/notes, bulk export
   (Markdown + JSON). Content is indexed for everyone; Free only sees title matches
   plus a count of hidden content matches.
-- A conversation lives in at most one folder (move semantics).
+- A conversation lives in at most one folder (move semantics). Tags are many-to-many
+  through `conversations_meta.tagIds`; the note is `conversations_meta.note` (personal
+  text, never logged). Both survive re-sync and are written into exports.
+- Folder export runs in the content script: it fetches each chat through the adapter,
+  has the background format it, and bundles the files with the dependency-free zip
+  writer in `lib/export/zip.ts` (stored entries, sub-folders become directories).
 - `data-testid` attributes on interactive elements; e2e tests rely on them.
 - Prettier formats everything; ESLint flat config at the root.
 - Commit messages: imperative mood, short subject.
@@ -141,6 +146,4 @@ pnpm demo:stills                            # feature stills for the landing pag
 - [ ] Gemini adapter.
 - [ ] Grok adapter.
 - [ ] Client-side-encrypted sync of folders, pins and tags (never chat content unless opted in).
-- [ ] Tags UI (the `tags` table and `tagIds` index exist already).
 - [ ] Docked panel mode using `getSidebarMount()`.
-- [ ] Bulk export of a folder.

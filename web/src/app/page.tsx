@@ -81,7 +81,7 @@ const features = [
     title: 'Folders',
     icon: 'folder' as IconName,
     lead: 'Put chats where you can find them again.',
-    how: 'A panel on the right edge of ChatGPT and Claude. Create folders, give them a colour, drag chats in, pin the ones you keep coming back to. Everything is saved in your browser and survives reloads.',
+    how: 'A panel on the right edge of ChatGPT and Claude. Create folders, give them a colour, drag chats in, pin the ones you keep coming back to. Pro adds tags and a private note on any chat. Everything is saved in your browser and survives reloads.',
     image: { src: '/feature-folders.webp', width: 720, height: 582 },
   },
   {
@@ -95,8 +95,8 @@ const features = [
     title: 'Export',
     icon: 'download' as IconName,
     lead: 'Take a conversation out as a file.',
-    how: 'One click on any chat downloads it to your computer. Markdown for notes and docs; Pro adds JSON for scripts and bulk export of a whole folder. Nothing is uploaded anywhere on the way.',
-    image: { src: '/feature-export.webp', width: 720, height: 638 },
+    how: 'One click on any chat downloads it to your computer. Markdown for notes and docs; Pro adds JSON for scripts and a zip of a whole folder, sub-folders included. Your tags and notes travel with the file. Nothing is uploaded anywhere on the way.',
+    image: { src: '/feature-export.webp', width: 720, height: 870 },
   },
 ];
 

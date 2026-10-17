@@ -40,7 +40,8 @@ try {
     channel: 'chromium',
     headless: true,
     colorScheme: 'dark',
-    viewport: { width: 1100, height: 820 },
+    // Tall enough for the row menu to open downward.
+    viewport: { width: 1100, height: 1100 },
     deviceScaleFactor: 2,
     args: [
       `--disable-extensions-except=${extensionPath}`,
@@ -121,7 +122,7 @@ try {
   const menu = await page.getByTestId('export-menu').boundingBox();
   await clip(
     'feature-export',
-    rowBox.y - 8,
+    Math.min(rowBox.y, menu.y) - 8,
     Math.max(rowBox.y + rowBox.height, menu.y + menu.height) + 10,
   );
 
