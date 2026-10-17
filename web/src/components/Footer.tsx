@@ -44,7 +44,7 @@ export function Footer() {
           </div>
           {groups.map((g) => (
             <nav key={g.title} aria-label={g.title}>
-              <h2 className="text-xs font-semibold tracking-wide text-neutral-500 uppercase dark:text-neutral-500">
+              <h2 className="text-xs font-semibold tracking-wide text-neutral-500 uppercase dark:text-neutral-400">
                 {g.title}
               </h2>
               <ul className="mt-3 space-y-2 text-sm">
@@ -72,7 +72,7 @@ export function Footer() {
             </nav>
           ))}
         </div>
-        <div className="mt-10 flex flex-col gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800">
+        <div className="mt-10 flex flex-col gap-2 border-t border-neutral-200 pt-6 text-xs text-neutral-500 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-800 dark:text-neutral-400">
           <p>
             © {new Date().getFullYear()} {SITE_NAME}. All rights reserved.
           </p>

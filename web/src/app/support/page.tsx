@@ -105,6 +105,7 @@ export default function SupportPage() {
         <li>
           <strong>JSON (.json)</strong>: the title, vendor, timestamps and an array of messages with{' '}
           <code>role</code>, <code>text</code> and <code>createdAt</code>. For scripts and backups.
+          Pro only.
         </li>
       </ul>
       <p>
