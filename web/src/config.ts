@@ -30,7 +30,7 @@ export const PRICE_TEAMS_SEAT = '$8';
 export const TEAMS_MIN_SEATS = 3;
 
 /** Where support, privacy and refund requests go. */
-export const SUPPORT_EMAIL = 'support@stowlet.app'; // TODO: confirm mailbox exists
+export const SUPPORT_EMAIL = 'hello@stowlet.app';
 
 /** Shown on legal pages. */
 export const COMPANY_NAME = 'Stowlet'; // TODO: legal entity name
