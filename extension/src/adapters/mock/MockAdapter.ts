@@ -6,7 +6,7 @@ import {
   type Conversation,
   type ConversationList,
   type VendorAdapter,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import fixtures from '../../../test/fixtures/mock-conversations.json';
 
 interface MockFixtures {
@@ -48,7 +48,7 @@ export class MockAdapter implements VendorAdapter {
   }
 
   getSidebarMount(): Element | null {
-    return this.win?.document.querySelector('[data-gaveta-mount]') ?? null;
+    return this.win?.document.querySelector('[data-stowlet-mount]') ?? null;
   }
 
   getCurrentConversationId(): string | null {

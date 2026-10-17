@@ -1,7 +1,7 @@
 /*
  * Records the landing-page demo with a scripted, eased cursor instead of a hand.
  *
- *   pnpm --filter @gaveta/extension demo:record
+ *   pnpm --filter @stowlet/extension demo:record
  *
  * Launches Chrome for Testing with the production build loaded, opens ChatGPT in a
  * dedicated profile (extension/.demo-profile, git-ignored), and drives the panel:
@@ -81,11 +81,11 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 /** Draws a cursor in the page that follows real mouse events; Playwright videos have none. */
 async function installCursor(page) {
   await page.evaluate(() => {
-    if (document.getElementById('gaveta-demo-cursor')) return;
+    if (document.getElementById('stowlet-demo-cursor')) return;
     const el = document.createElement('div');
-    el.id = 'gaveta-demo-cursor';
+    el.id = 'stowlet-demo-cursor';
     const style = document.createElement('style');
-    style.textContent = `@keyframes gaveta-demo-pulse {
+    style.textContent = `@keyframes stowlet-demo-pulse {
       from { transform: translate(-50%, -50%) scale(0.35); opacity: 0.85; }
       to { transform: translate(-50%, -50%) scale(1.5); opacity: 0; }
     }`;
@@ -136,7 +136,7 @@ async function installCursor(page) {
           boxShadow: '0 0 0 2px rgba(249,115,22,.25)',
           zIndex: '2147483646',
           pointerEvents: 'none',
-          animation: 'gaveta-demo-pulse 480ms ease-out forwards',
+          animation: 'stowlet-demo-pulse 480ms ease-out forwards',
         });
         document.documentElement.appendChild(ring);
         setTimeout(() => ring.remove(), 520);
@@ -305,7 +305,7 @@ async function resetLocalState(newPage) {
   await page.evaluate(
     () =>
       new Promise((resolve) => {
-        const req = indexedDB.deleteDatabase('gaveta');
+        const req = indexedDB.deleteDatabase('stowlet');
         req.onsuccess = req.onerror = req.onblocked = () => resolve(undefined);
         setTimeout(resolve, 3000);
       }),

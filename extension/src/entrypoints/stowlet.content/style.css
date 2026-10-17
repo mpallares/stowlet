@@ -23,7 +23,7 @@
  * WXT applies `all: initial` to the shadow wrapper, so fonts set on :host do not
  * inherit. Root elements of the UI carry this attribute instead.
  */
-[data-gaveta-root] {
+[data-stowlet-root] {
   font-family:
     ui-sans-serif,
     system-ui,
@@ -82,14 +82,14 @@ input[type='search']::-webkit-search-cancel-button {
 
 /* Focus: buttons and links get a ring only from the keyboard; text fields get a
    single accent border plus a soft halo, never the browser's double outline. */
-[data-gaveta-root] :where(button, a):focus-visible {
+[data-stowlet-root] :where(button, a):focus-visible {
   outline: 2px solid var(--g-accent);
   outline-offset: 1px;
 }
-[data-gaveta-root] :where(button, a):focus:not(:focus-visible) {
+[data-stowlet-root] :where(button, a):focus:not(:focus-visible) {
   outline: none;
 }
-[data-gaveta-root] :where(input, select, textarea):focus {
+[data-stowlet-root] :where(input, select, textarea):focus {
   outline: none;
   border-color: var(--g-accent);
   box-shadow: 0 0 0 3px color-mix(in srgb, var(--g-accent) 22%, transparent);

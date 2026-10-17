@@ -1,9 +1,9 @@
-import { useGaveta } from '@/store/context';
+import { useStowlet } from '@/store/context';
 import { IconClose, IconSearch } from './icons';
 
 export function SearchBox() {
-  const query = useGaveta((s) => s.query);
-  const setQuery = useGaveta((s) => s.setQuery);
+  const query = useStowlet((s) => s.query);
+  const setQuery = useStowlet((s) => s.setQuery);
   return (
     <div className="relative">
       <span className="pointer-events-none absolute top-1/2 left-2.5 -translate-y-1/2 text-(--g-fg-muted)">

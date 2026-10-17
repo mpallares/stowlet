@@ -2,19 +2,19 @@ import { createRoot, type Root } from 'react-dom/client';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 import { resolveAdapter } from '@/adapters/registry';
-import type { VendorAdapter } from '@gaveta/shared';
+import type { VendorAdapter } from '@stowlet/shared';
 import { contentMatches } from '@/hosts';
 import { downloadFile } from '@/lib/export/download';
 import { log } from '@/lib/log';
 import { sendToBackground } from '@/lib/messaging';
 import { readPanelOpen, writePanelOpen } from '@/lib/panelState';
-import { createGavetaStore } from '@/store/gavetaStore';
+import { createStowletStore } from '@/store/stowletStore';
 import { StoreProvider } from '@/store/context';
 import { Panel } from '@/ui/Panel';
 import './style.css';
 
 export default defineContentScript({
-  matches: contentMatches(__GAVETA_E2E__),
+  matches: contentMatches(__STOWLET_E2E__),
   runAt: 'document_idle',
   cssInjectionMode: 'ui',
 
@@ -25,7 +25,7 @@ export default defineContentScript({
       return;
     }
 
-    const store = createGavetaStore({
+    const store = createStowletStore({
       adapter,
       getLicense: () => sendToBackground('license:get', {}),
       getRemoteConfig: () => sendToBackground('remoteConfig:get', {}),
@@ -42,7 +42,7 @@ export default defineContentScript({
     });
 
     const ui = await createShadowRootUi<Root>(ctx, {
-      name: 'gaveta-panel',
+      name: 'stowlet-panel',
       position: 'inline',
       anchor: 'body',
       append: 'last',

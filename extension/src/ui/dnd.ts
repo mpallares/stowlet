@@ -1,7 +1,7 @@
 import { useRef, useState } from 'react';
-import type { ConversationKey } from '@gaveta/shared';
+import type { ConversationKey } from '@stowlet/shared';
 
-export const DND_MIME = 'application/x-gaveta-conversation';
+export const DND_MIME = 'application/x-stowlet-conversation';
 
 export function setDragKey(e: React.DragEvent, key: ConversationKey): void {
   e.dataTransfer.setData(DND_MIME, key);

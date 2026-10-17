@@ -3,7 +3,7 @@ import {
   type AdapterError,
   type ConversationKey,
   type VendorAdapter,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { markIndexed, pruneMissing, saveSerializedIndex, upsertSummaries } from '@/db';
 import { log } from '@/lib/log';
 import { docFromConversation, previewOf, type SearchIndex } from './SearchIndex';

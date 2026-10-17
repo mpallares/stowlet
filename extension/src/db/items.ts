@@ -1,4 +1,4 @@
-import { conversationKey, type ConversationKey, type VendorId } from '@gaveta/shared';
+import { conversationKey, type ConversationKey, type VendorId } from '@stowlet/shared';
 import { getDb, type FolderItem } from './schema';
 
 export async function listItems(): Promise<FolderItem[]> {

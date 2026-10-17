@@ -3,7 +3,7 @@ import {
   type ConversationKey,
   type ConversationSummary,
   type VendorId,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { getDb, type ConversationMeta } from './schema';
 
 export async function listConversationMeta(vendorId?: VendorId): Promise<ConversationMeta[]> {

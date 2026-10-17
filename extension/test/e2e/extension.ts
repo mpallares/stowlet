@@ -14,7 +14,7 @@ export const test = base.extend<{ context: BrowserContext }>({
     if (!existsSync(join(extensionPath, 'manifest.json'))) {
       throw new Error(`Extension build missing at ${extensionPath}. Run \`pnpm build:e2e\` first.`);
     }
-    const userDataDir = await mkdtemp(join(tmpdir(), 'gaveta-e2e-'));
+    const userDataDir = await mkdtemp(join(tmpdir(), 'stowlet-e2e-'));
     const context = await chromium.launchPersistentContext(userDataDir, {
       channel: 'chromium',
       headless: true,

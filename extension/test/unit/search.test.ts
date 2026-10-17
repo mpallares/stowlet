@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Conversation } from '@gaveta/shared';
+import type { Conversation } from '@stowlet/shared';
 import { MockAdapter } from '@/adapters/mock/MockAdapter';
 import { loadSerializedIndex, listConversationMeta } from '@/db';
 import { syncVendor } from '@/lib/search/indexer';

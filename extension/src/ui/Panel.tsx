@@ -1,4 +1,4 @@
-import { useGaveta } from '@/store/context';
+import { useStowlet } from '@/store/context';
 import { ConversationList } from './ConversationList';
 import { FolderTree } from './FolderTree';
 import { IconClose, IconDrawer, IconRefresh } from './icons';
@@ -11,18 +11,18 @@ interface Props {
 }
 
 export function Panel({ vendorName, conversationUrl }: Props) {
-  const open = useGaveta((s) => s.panelOpen);
-  const setPanelOpen = useGaveta((s) => s.setPanelOpen);
-  const sync = useGaveta((s) => s.sync);
-  const status = useGaveta((s) => s.status);
+  const open = useStowlet((s) => s.panelOpen);
+  const setPanelOpen = useStowlet((s) => s.setPanelOpen);
+  const sync = useStowlet((s) => s.sync);
+  const status = useStowlet((s) => s.status);
 
   if (!open) {
     return (
       <button
         type="button"
         data-testid="panel-toggle"
-        data-gaveta-root
-        aria-label="Open Gaveta"
+        data-stowlet-root
+        aria-label="Open Stowlet"
         onClick={() => void setPanelOpen(true)}
         className="fixed top-1/2 right-0 z-[2147483000] flex -translate-y-1/2 items-center gap-1 rounded-l-md border border-r-0 border-(--g-border) bg-(--g-bg-elevated) px-2 py-3 text-[13px] text-(--g-fg) shadow-md"
       >
@@ -34,13 +34,13 @@ export function Panel({ vendorName, conversationUrl }: Props) {
   return (
     <aside
       data-testid="panel"
-      data-gaveta-root
-      aria-label="Gaveta"
+      data-stowlet-root
+      aria-label="Stowlet"
       className="fixed top-0 right-0 z-[2147483000] flex h-screen w-(--g-panel-width) max-w-[90vw] flex-col border-l border-(--g-border) bg-(--g-bg) text-(--g-fg) shadow-xl"
     >
       <header className="flex items-center gap-2 border-b border-(--g-border) px-4 py-2.5">
         <IconDrawer />
-        <h1 className="flex-1 text-[15px] font-semibold">Gaveta</h1>
+        <h1 className="flex-1 text-[15px] font-semibold">Stowlet</h1>
         <span className="text-[11px] text-(--g-fg-muted)">{vendorName}</span>
         <button
           type="button"
@@ -54,7 +54,7 @@ export function Panel({ vendorName, conversationUrl }: Props) {
         </button>
         <button
           type="button"
-          aria-label="Collapse Gaveta"
+          aria-label="Collapse Stowlet"
           data-testid="panel-collapse"
           onClick={() => void setPanelOpen(false)}
           className="rounded p-1 text-(--g-fg-muted) hover:bg-(--g-bg-hover) hover:text-(--g-fg)"

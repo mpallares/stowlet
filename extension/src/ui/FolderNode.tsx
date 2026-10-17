@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Folder } from '@/db';
-import { childrenOf, descendantIds } from '@/store/gavetaStore';
-import { useGaveta } from '@/store/context';
+import { childrenOf, descendantIds } from '@/store/stowletStore';
+import { useStowlet } from '@/store/context';
 import { can } from '@/entitlements';
 import { ColorPicker } from './ColorPicker';
 import { readDragKey, useDropTarget } from './dnd';
@@ -15,21 +15,21 @@ interface Props {
 }
 
 export function FolderNode({ folder, depth }: Props) {
-  const folders = useGaveta((s) => s.folders);
-  const items = useGaveta((s) => s.items);
-  const view = useGaveta((s) => s.view);
-  const expanded = useGaveta((s) => s.expanded[folder.id] ?? true);
-  const toggleExpanded = useGaveta((s) => s.toggleExpanded);
-  const setView = useGaveta((s) => s.setView);
-  const renameFolder = useGaveta((s) => s.renameFolder);
-  const deleteFolder = useGaveta((s) => s.deleteFolder);
-  const setFolderColor = useGaveta((s) => s.setFolderColor);
-  const createFolder = useGaveta((s) => s.createFolder);
-  const moveToFolder = useGaveta((s) => s.moveToFolder);
-  const exportFolder = useGaveta((s) => s.exportFolder);
-  const dragging = useGaveta((s) => s.dragging);
-  const tier = useGaveta((s) => s.license.tier);
-  const requirePro = useGaveta((s) => s.requirePro);
+  const folders = useStowlet((s) => s.folders);
+  const items = useStowlet((s) => s.items);
+  const view = useStowlet((s) => s.view);
+  const expanded = useStowlet((s) => s.expanded[folder.id] ?? true);
+  const toggleExpanded = useStowlet((s) => s.toggleExpanded);
+  const setView = useStowlet((s) => s.setView);
+  const renameFolder = useStowlet((s) => s.renameFolder);
+  const deleteFolder = useStowlet((s) => s.deleteFolder);
+  const setFolderColor = useStowlet((s) => s.setFolderColor);
+  const createFolder = useStowlet((s) => s.createFolder);
+  const moveToFolder = useStowlet((s) => s.moveToFolder);
+  const exportFolder = useStowlet((s) => s.exportFolder);
+  const dragging = useStowlet((s) => s.dragging);
+  const tier = useStowlet((s) => s.license.tier);
+  const requirePro = useStowlet((s) => s.requirePro);
   const bulkBadge = can(tier, 'bulk-export') ? undefined : <ProBadge />;
 
   const [mode, setMode] = useState<'idle' | 'rename' | 'new-child' | 'color'>('idle');

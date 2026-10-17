@@ -4,7 +4,7 @@
  */
 
 /** Canonical origin, no trailing slash. Used for canonical URLs, sitemap, robots and OG image. */
-export const SITE_URL = 'https://gaveta.app'; // TODO: confirm the production domain
+export const SITE_URL = 'https://stowlet.app';
 
 /** Chrome Web Store listing. Set after the first store review. */
 export const CHROME_WEB_STORE_URL =
@@ -30,16 +30,16 @@ export const PRICE_TEAMS_SEAT = '$8';
 export const TEAMS_MIN_SEATS = 3;
 
 /** Where support, privacy and refund requests go. */
-export const SUPPORT_EMAIL = 'support@gaveta.app'; // TODO: confirm mailbox exists
+export const SUPPORT_EMAIL = 'support@stowlet.app'; // TODO: confirm mailbox exists
 
 /** Shown on legal pages. */
-export const COMPANY_NAME = 'Gaveta'; // TODO: legal entity name
+export const COMPANY_NAME = 'Stowlet'; // TODO: legal entity name
 export const GOVERNING_LAW = 'REPLACE_JURISDICTION'; // TODO: e.g. "Spain" or "the State of Delaware, USA"
 export const LEGAL_LAST_UPDATED = '2026-10-16';
 
 export const FREE_FOLDER_LIMIT = 5;
 
-export const SITE_NAME = 'Gaveta';
+export const SITE_NAME = 'Stowlet';
 export const TAGLINE = 'A drawer for your AI chats.';
 export const DESCRIPTION =
   'Folders, full-text search and export for ChatGPT and Claude. Local-first: your chats never leave the browser.';

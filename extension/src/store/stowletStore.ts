@@ -9,7 +9,7 @@ import {
   type LicenseState,
   type RemoteConfig,
   type VendorAdapter,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { can, limits, type Feature, type UpgradeReason } from '@/entitlements';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import * as db from '@/db';
@@ -42,7 +42,7 @@ export interface ExportProgress {
   total: number;
 }
 
-export interface GavetaDeps {
+export interface StowletDeps {
   adapter: VendorAdapter;
   getLicense: () => Promise<LicenseState>;
   getRemoteConfig: () => Promise<RemoteConfig>;
@@ -57,7 +57,7 @@ export interface GavetaDeps {
   writePanelOpen: (open: boolean) => Promise<void>;
 }
 
-export interface GavetaState {
+export interface StowletState {
   status: AdapterStatus;
   notice: string | null;
   license: LicenseState;
@@ -121,14 +121,14 @@ const STATUS_FOR_ERROR: Record<AdapterErrorCode, AdapterStatus> = {
   unknown: 'needs-update',
 };
 
-export type GavetaStore = StoreApi<GavetaState>;
+export type StowletStore = StoreApi<StowletState>;
 
-export function createGavetaStore(deps: GavetaDeps): GavetaStore {
+export function createStowletStore(deps: StowletDeps): StowletStore {
   const { adapter } = deps;
   let index = SearchIndex.empty();
   let syncing: Promise<void> | null = null;
 
-  return createStore<GavetaState>()((set, get) => {
+  return createStore<StowletState>()((set, get) => {
     const runSearch = (): void => {
       const q = get().query;
       if (q.trim() === '') {
@@ -481,7 +481,7 @@ export function descendantIds(folders: Folder[], id: string): Set<string> {
 
 /** Conversations visible under the current view, newest first. */
 export function visibleConversations(
-  state: Pick<GavetaState, 'view' | 'conversations' | 'items' | 'folders'>,
+  state: Pick<StowletState, 'view' | 'conversations' | 'items' | 'folders'>,
 ): ConversationMeta[] {
   const { view, conversations, items, folders } = state;
   const folderOf = new Map(items.map((i) => [i.id, i.folderId]));

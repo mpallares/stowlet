@@ -1,8 +1,8 @@
-import type { Conversation, VendorId } from '@gaveta/shared';
+import type { Conversation, VendorId } from '@stowlet/shared';
 import type { ExportExtras } from './markdown';
 
 export interface ConversationExportJson {
-  format: 'gaveta.conversation';
+  format: 'stowlet.conversation';
   version: 1;
   exportedAt: string;
   vendor: VendorId;
@@ -20,7 +20,7 @@ export function toJson(
   extras: ExportExtras = {},
 ): string {
   const payload: ConversationExportJson = {
-    format: 'gaveta.conversation',
+    format: 'stowlet.conversation',
     version: 1,
     exportedAt: now.toISOString(),
     vendor: vendorId,

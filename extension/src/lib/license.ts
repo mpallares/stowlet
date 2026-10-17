@@ -1,4 +1,4 @@
-import { DEFAULT_LICENSE_STATE, type LicenseState } from '@gaveta/shared';
+import { DEFAULT_LICENSE_STATE, type LicenseState } from '@stowlet/shared';
 import { browser } from 'wxt/browser';
 
 const KEY = 'license';

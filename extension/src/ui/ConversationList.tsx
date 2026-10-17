@@ -1,20 +1,20 @@
-import { visibleConversations } from '@/store/gavetaStore';
-import { useGaveta } from '@/store/context';
+import { visibleConversations } from '@/store/stowletStore';
+import { useStowlet } from '@/store/context';
 import { can } from '@/entitlements';
 import { ConversationRow } from './ConversationRow';
 
 export function ConversationList({ conversationUrl }: { conversationUrl: (id: string) => string }) {
-  const query = useGaveta((s) => s.query);
-  const hits = useGaveta((s) => s.hits);
-  const hiddenMatches = useGaveta((s) => s.hiddenMatches);
-  const requirePro = useGaveta((s) => s.requirePro);
-  const contentSearch = useGaveta((s) => can(s.license.tier, 'content-search'));
-  const conversations = useGaveta((s) => s.conversations);
-  const view = useGaveta((s) => s.view);
-  const items = useGaveta((s) => s.items);
-  const folders = useGaveta((s) => s.folders);
-  const tags = useGaveta((s) => s.tags);
-  const status = useGaveta((s) => s.status);
+  const query = useStowlet((s) => s.query);
+  const hits = useStowlet((s) => s.hits);
+  const hiddenMatches = useStowlet((s) => s.hiddenMatches);
+  const requirePro = useStowlet((s) => s.requirePro);
+  const contentSearch = useStowlet((s) => can(s.license.tier, 'content-search'));
+  const conversations = useStowlet((s) => s.conversations);
+  const view = useStowlet((s) => s.view);
+  const items = useStowlet((s) => s.items);
+  const folders = useStowlet((s) => s.folders);
+  const tags = useStowlet((s) => s.tags);
+  const status = useStowlet((s) => s.status);
 
   if (query.trim() !== '') {
     const byKey = new Map(conversations.map((c) => [c.id, c]));

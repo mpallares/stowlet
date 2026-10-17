@@ -1,4 +1,4 @@
-import type { VendorAdapter } from '@gaveta/shared';
+import type { VendorAdapter } from '@stowlet/shared';
 import { ChatGPTAdapter } from './chatgpt/ChatGPTAdapter';
 import { ClaudeAdapter } from './claude/ClaudeAdapter';
 import { MockAdapter } from './mock/MockAdapter';
@@ -9,6 +9,6 @@ import { MockAdapter } from './mock/MockAdapter';
  */
 export function resolveAdapter(url: string): VendorAdapter | null {
   const candidates: VendorAdapter[] = [new ChatGPTAdapter(), new ClaudeAdapter()];
-  if (__GAVETA_E2E__) candidates.push(new MockAdapter());
+  if (__STOWLET_E2E__) candidates.push(new MockAdapter());
   return candidates.find((a) => a.matches(url)) ?? null;
 }

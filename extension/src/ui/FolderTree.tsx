@@ -1,7 +1,7 @@
 import { useState } from 'react';
-import { folderLimit } from '@gaveta/shared';
-import { childrenOf } from '@/store/gavetaStore';
-import { useGaveta } from '@/store/context';
+import { folderLimit } from '@stowlet/shared';
+import { childrenOf } from '@/store/stowletStore';
+import { useStowlet } from '@/store/context';
 import { readDragKey, useDropTarget } from './dnd';
 import { FolderNode } from './FolderNode';
 import { IconPin, IconPlus } from './icons';
@@ -9,18 +9,18 @@ import { InlineInput } from './InlineInput';
 import { TagNode } from './TagNode';
 
 export function FolderTree() {
-  const folders = useGaveta((s) => s.folders);
-  const items = useGaveta((s) => s.items);
-  const conversations = useGaveta((s) => s.conversations);
-  const view = useGaveta((s) => s.view);
-  const setView = useGaveta((s) => s.setView);
-  const createFolder = useGaveta((s) => s.createFolder);
-  const moveToFolder = useGaveta((s) => s.moveToFolder);
-  const tier = useGaveta((s) => s.license.tier);
-  const tags = useGaveta((s) => s.tags);
+  const folders = useStowlet((s) => s.folders);
+  const items = useStowlet((s) => s.items);
+  const conversations = useStowlet((s) => s.conversations);
+  const view = useStowlet((s) => s.view);
+  const setView = useStowlet((s) => s.setView);
+  const createFolder = useStowlet((s) => s.createFolder);
+  const moveToFolder = useStowlet((s) => s.moveToFolder);
+  const tier = useStowlet((s) => s.license.tier);
+  const tags = useStowlet((s) => s.tags);
   const [creating, setCreating] = useState(false);
   const { over: unfiledOver, handlers: unfiledHandlers, reset: resetUnfiled } = useDropTarget();
-  const dragging = useGaveta((s) => s.dragging);
+  const dragging = useStowlet((s) => s.dragging);
 
   const roots = childrenOf(folders, null);
   const pinnedCount = conversations.filter((c) => c.pinned === 1).length;

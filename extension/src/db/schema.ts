@@ -1,5 +1,5 @@
 import Dexie, { type EntityTable } from 'dexie';
-import type { ConversationKey, VendorId } from '@gaveta/shared';
+import type { ConversationKey, VendorId } from '@stowlet/shared';
 
 export interface Folder {
   id: string;
@@ -59,14 +59,14 @@ export interface SearchIndexRow {
   updatedAt: number;
 }
 
-export class GavetaDB extends Dexie {
+export class StowletDB extends Dexie {
   folders!: EntityTable<Folder, 'id'>;
   folder_items!: EntityTable<FolderItem, 'id'>;
   tags!: EntityTable<Tag, 'id'>;
   conversations_meta!: EntityTable<ConversationMeta, 'id'>;
   search_index!: EntityTable<SearchIndexRow, 'id'>;
 
-  constructor(name = 'gaveta') {
+  constructor(name = 'stowlet') {
     super(name);
     this.version(1).stores({
       folders: 'id, parentId, order, name',
@@ -78,14 +78,14 @@ export class GavetaDB extends Dexie {
   }
 }
 
-let instance: GavetaDB | null = null;
+let instance: StowletDB | null = null;
 
-export function getDb(): GavetaDB {
-  instance ??= new GavetaDB();
+export function getDb(): StowletDB {
+  instance ??= new StowletDB();
   return instance;
 }
 
 /** Test helper: swap the singleton (e.g. for a fresh in-memory db per test). */
-export function setDb(db: GavetaDB | null): void {
+export function setDb(db: StowletDB | null): void {
   instance = db;
 }

@@ -1,4 +1,4 @@
-import { FREE_FOLDER_LIMIT, type LicenseTier } from '@gaveta/shared';
+import { FREE_FOLDER_LIMIT, type LicenseTier } from '@stowlet/shared';
 
 /**
  * Single source of truth for what each plan may do. The tier comes from the
@@ -33,7 +33,7 @@ export function limits(tier: LicenseTier): { folders: number } {
 }
 
 /** Where the upgrade banner sends people. */
-export const PRICING_URL = 'https://gaveta.app/#pricing';
+export const PRICING_URL = 'https://stowlet.app/#pricing';
 
 /** Plan summaries in the exact wording used on the website's pricing cards. */
 export const PLAN_SUMMARY: Record<LicenseTier, string> = {

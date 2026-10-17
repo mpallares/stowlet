@@ -1,4 +1,4 @@
-import type { MessageMap, MessageRequest, MessageResponse, MessageType } from '@gaveta/shared';
+import type { MessageMap, MessageRequest, MessageResponse, MessageType } from '@stowlet/shared';
 import { browser } from 'wxt/browser';
 
 /** Typed request to the background. Throws on transport or handler error. */

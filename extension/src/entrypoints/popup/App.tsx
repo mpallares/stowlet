@@ -5,7 +5,7 @@ import {
   DEFAULT_REMOTE_CONFIG,
   type LicenseState,
   type RemoteConfig,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { browser } from 'wxt/browser';
 import { sendToBackground } from '@/lib/messaging';
 
@@ -34,7 +34,7 @@ export function App() {
   return (
     <main className="flex flex-col gap-3 p-4 text-sm">
       <header className="flex items-baseline justify-between">
-        <h1 className="text-base font-semibold">Gaveta</h1>
+        <h1 className="text-base font-semibold">Stowlet</h1>
         <span className="text-xs text-gray-500">v{version}</span>
       </header>
 
@@ -83,7 +83,7 @@ export function App() {
       </section>
 
       <p className="text-xs text-gray-500">
-        Open chatgpt.com or claude.ai to see the Gaveta panel on the right edge.
+        Open chatgpt.com or claude.ai to see the Stowlet panel on the right edge.
       </p>
     </main>
   );

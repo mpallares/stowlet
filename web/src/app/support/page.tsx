@@ -42,8 +42,8 @@ export default function SupportPage() {
         </li>
       </ol>
       <p>
-        Gaveta works in Chrome and in Chromium-based browsers that install from the Chrome Web Store
-        (Edge, Brave, Arc, Vivaldi). Firefox and Safari are not supported.
+        Stowlet works in Chrome and in Chromium-based browsers that install from the Chrome Web
+        Store (Edge, Brave, Arc, Vivaldi). Firefox and Safari are not supported.
       </p>
 
       <h2>Finding and entering your license key</h2>

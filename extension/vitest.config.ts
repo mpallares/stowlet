@@ -8,7 +8,7 @@ export default defineConfig({
     },
   },
   define: {
-    __GAVETA_E2E__: 'false',
+    __STOWLET_E2E__: 'false',
   },
   test: {
     include: ['test/unit/**/*.test.ts'],

@@ -33,7 +33,7 @@ jobs:
             console.log('manifest ok', hosts);
           "
       - name: Install Playwright Chromium
-        run: pnpm --filter @gaveta/extension exec playwright install --with-deps chromium
+        run: pnpm --filter @stowlet/extension exec playwright install --with-deps chromium
       - run: pnpm test:e2e
       - uses: actions/upload-artifact@v4
         if: failure()

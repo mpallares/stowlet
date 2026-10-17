@@ -4,7 +4,7 @@
  */
 type Meta = Record<string, string | number | boolean | null | undefined>;
 
-const PREFIX = '[gaveta]';
+const PREFIX = '[stowlet]';
 
 export const log = {
   debug(scope: string, event: string, meta?: Meta): void {

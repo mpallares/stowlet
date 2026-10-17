@@ -1,4 +1,4 @@
-import type { Conversation, MessageRole } from '@gaveta/shared';
+import type { Conversation, MessageRole } from '@stowlet/shared';
 
 const ROLE_LABEL: Record<MessageRole, string> = {
   user: 'User',

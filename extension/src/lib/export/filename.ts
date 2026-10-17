@@ -1,4 +1,4 @@
-import type { ExportFormat } from '@gaveta/shared';
+import type { ExportFormat } from '@stowlet/shared';
 
 const EXT: Record<ExportFormat, string> = { markdown: 'md', json: 'json' };
 export const MIME: Record<ExportFormat, string> = {

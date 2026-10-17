@@ -2,7 +2,7 @@
  * Captures the three feature stills on the landing page from the mock page, so they
  * always show the current panel design and the same sample data.
  *
- *   pnpm --filter @gaveta/extension build:e2e
+ *   pnpm --filter @stowlet/extension build:e2e
  *   node scripts/capture-stills.mjs          # writes web/public/feature-{folders,search,export}.webp
  *
  * Needs ffmpeg for the WebP encode. Playwright serves the fixture page itself.
@@ -33,7 +33,7 @@ const server = spawn('node', [join(here, '..', 'test', 'e2e', 'serve-fixture.mjs
   stdio: 'ignore',
 });
 await new Promise((r) => setTimeout(r, 800));
-const tmp = mkdtempSync(join(tmpdir(), 'gaveta-stills-'));
+const tmp = mkdtempSync(join(tmpdir(), 'stowlet-stills-'));
 
 try {
   const ctx = await chromium.launchPersistentContext('', {
@@ -54,7 +54,7 @@ try {
   await page.waitForFunction(
     () =>
       document
-        .querySelector('gaveta-panel')
+        .querySelector('stowlet-panel')
         ?.shadowRoot?.querySelector('[data-testid=status]')
         ?.getAttribute('data-status') === 'ready',
   );

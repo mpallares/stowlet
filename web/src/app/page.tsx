@@ -88,7 +88,7 @@ const features = [
     title: 'Search',
     icon: 'search' as IconName,
     lead: 'Search every conversation as you type.',
-    how: 'Gaveta reads each chat through the site you are already logged into and builds an index in IndexedDB. Free matches titles; Pro matches the text of every message. Only chats that changed since the last visit are re-read.',
+    how: 'Stowlet reads each chat through the site you are already logged into and builds an index in IndexedDB. Free matches titles; Pro matches the text of every message. Only chats that changed since the last visit are re-read.',
     image: { src: '/feature-search.webp', width: 720, height: 806 },
   },
   {
@@ -102,7 +102,7 @@ const features = [
 
 const faq: FaqItem[] = [
   {
-    q: 'Does Gaveta read my chats?',
+    q: 'Does Stowlet read my chats?',
     a: 'Yes, inside your browser, to build the search index. The text is stored in IndexedDB on your computer and is never sent to us or anyone else.',
   },
   {
@@ -115,7 +115,7 @@ const faq: FaqItem[] = [
   },
   {
     q: 'What happens when ChatGPT or Claude changes its layout?',
-    a: 'The panel shows a notice that Gaveta needs an update and keeps working on what it has already indexed. Updates ship through the Chrome Web Store. See the support page if the panel disappears.',
+    a: 'The panel shows a notice that Stowlet needs an update and keeps working on what it has already indexed. Updates ship through the Chrome Web Store. See the support page if the panel disappears.',
   },
   {
     q: 'What is the difference between Free and Pro?',
@@ -278,7 +278,7 @@ export default function Home() {
               playsInline
               preload="metadata"
               poster="/demo-poster.webp"
-              aria-label="Gaveta panel on ChatGPT: creating a folder, filing a chat and searching message text"
+              aria-label="Stowlet panel on ChatGPT: creating a folder, filing a chat and searching message text"
             >
               <source src="/demo.mp4" type="video/mp4" />
             </video>
@@ -362,7 +362,7 @@ export default function Home() {
                     width={f.image.width}
                     height={f.image.height}
                     loading="lazy"
-                    alt={`Gaveta panel: ${f.title.toLowerCase()}`}
+                    alt={`Stowlet panel: ${f.title.toLowerCase()}`}
                     className="w-full"
                   />
                   <div
@@ -401,7 +401,7 @@ export default function Home() {
                 width={claudeStill.width}
                 height={claudeStill.height}
                 loading="lazy"
-                alt="Gaveta panel on claude.ai"
+                alt="Stowlet panel on claude.ai"
                 className="w-full rounded-xl border border-neutral-200 dark:border-neutral-800"
               />
             </div>

@@ -1,4 +1,4 @@
-import type { Conversation, ConversationSummary, Message, MessageRole } from '@gaveta/shared';
+import type { Conversation, ConversationSummary, Message, MessageRole } from '@stowlet/shared';
 
 /**
  * Pure parsers for ChatGPT API payloads. They accept `unknown` and return null

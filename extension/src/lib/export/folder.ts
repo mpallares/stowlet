@@ -1,4 +1,4 @@
-import type { ConversationKey, VendorId } from '@gaveta/shared';
+import type { ConversationKey, VendorId } from '@stowlet/shared';
 import type { Folder, FolderItem } from '@/db';
 import { slugify } from './filename';
 

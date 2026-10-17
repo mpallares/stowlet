@@ -7,7 +7,7 @@ import {
   type ConversationList,
   type ConversationSummary,
   type VendorAdapter,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { errorKind, log } from '@/lib/log';
 import { claudeConfig as cfg } from './config';
 import { parseConversation, parseConversationList, parseOrganizations } from './parse';

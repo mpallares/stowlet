@@ -1,4 +1,4 @@
-# Gaveta
+# Stowlet
 
 Folders, full-text search and export for AI chat apps. ChatGPT and Claude now, Gemini and Grok later.
 Local-first: chat content never leaves the browser.
@@ -32,7 +32,7 @@ pnpm dev            # extension dev server with hot reload (opens a Chrome profi
 1. `pnpm build`
 2. Open `chrome://extensions`, enable **Developer mode** (top right).
 3. Click **Load unpacked** and pick `extension/.output/chrome-mv3`.
-4. Open https://chatgpt.com or https://claude.ai. The Gaveta panel sits on the
+4. Open https://chatgpt.com or https://claude.ai. The Stowlet panel sits on the
    right edge; use the drawer tab to collapse or expand it.
 
 The extension only requests `storage` and host permissions for
@@ -56,8 +56,8 @@ email, company name) is a constant in `web/src/config.ts`. The site is always da
 the demo video and stills are dark, so one palette is enough.
 
 ```sh
-pnpm --filter @gaveta/web dev     # http://localhost:3000
-pnpm --filter @gaveta/web build   # static export to web/out
+pnpm --filter @stowlet/web dev     # http://localhost:3000
+pnpm --filter @stowlet/web build   # static export to web/out
 ```
 
 ## Tests
@@ -69,9 +69,9 @@ pnpm test           # vitest: Dexie layer, search wrapper, export formatting, Ch
 pnpm test:e2e       # builds the e2e bundle, then Playwright drives Chromium with it loaded
 ```
 
-The Playwright run needs a browser once: `pnpm --filter @gaveta/extension exec playwright install chromium`.
+The Playwright run needs a browser once: `pnpm --filter @stowlet/extension exec playwright install chromium`.
 
-The e2e build (`GAVETA_E2E=1`) adds `http://127.0.0.1:4173/*` to the manifest so
+The e2e build (`STOWLET_E2E=1`) adds `http://127.0.0.1:4173/*` to the manifest so
 the content script runs on a local fixture page served from
 `extension/test/e2e/fixture-page/`. On that page the extension uses the
 `MockAdapter` fed by `extension/test/fixtures/mock-conversations.json`. The
@@ -84,7 +84,7 @@ To refresh the captures, see
 `extension/test/fixtures/chatgpt/README.md` and
 `extension/test/fixtures/claude/README.md` for the DevTools snippets that
 capture real responses as fixtures. If an API shape changed, the panel shows
-"Gaveta needs an update for this site" instead of crashing, and the sidebar DOM
+"Stowlet needs an update for this site" instead of crashing, and the sidebar DOM
 is used as a read-only fallback for the conversation list.
 
 ## Recording the landing-page demo
@@ -106,7 +106,7 @@ flow attaches to a Chrome you start yourself:
 ```sh
 pnpm build
 open -na "Google Chrome" --args --remote-debugging-port=9222 \
-  --user-data-dir="$HOME/gaveta-demo-profile" --window-size=1500,1000 https://chatgpt.com/
+  --user-data-dir="$HOME/stowlet-demo-profile" --window-size=1500,1000 https://chatgpt.com/
 ```
 
 In that window: log in, load the unpacked extension from `extension/.output/chrome-mv3`
@@ -129,13 +129,13 @@ The three feature stills on the landing page come from the mock page instead, so
 they always show the current panel with the same sample data:
 
 ```sh
-pnpm --filter @gaveta/extension build:e2e
+pnpm --filter @stowlet/extension build:e2e
 pnpm demo:stills                  # writes web/public/feature-{folders,search,export}.webp
 ```
 
 ## Remote config
 
-On startup the background worker fetches `https://config.gaveta.app/v1/config.json`
+On startup the background worker fetches `https://config.stowlet.app/v1/config.json`
 (per-adapter `enabled` flags plus an optional notice), caches it in
 `chrome.storage.local` for six hours and falls back to a bundled default when
 offline. The stub lives in `web/public/config/v1/config.json`. The host must send

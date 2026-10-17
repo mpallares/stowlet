@@ -7,7 +7,7 @@ import {
   type ConversationList,
   type ConversationSummary,
   type VendorAdapter,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { errorKind, log } from '@/lib/log';
 import { chatgptConfig as cfg } from './config';
 import { parseAccessToken, parseConversation, parseConversationsPage } from './parse';

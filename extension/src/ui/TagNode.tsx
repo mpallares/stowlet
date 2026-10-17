@@ -1,17 +1,17 @@
 import { useState } from 'react';
 import type { Tag } from '@/db';
-import { useGaveta } from '@/store/context';
+import { useStowlet } from '@/store/context';
 import { IconMore, IconTag } from './icons';
 import { InlineInput } from './InlineInput';
 import { Menu, MenuItem } from './Menu';
 
 /** One tag in the sidebar: click to filter, menu to rename or delete. */
 export function TagNode({ tag }: { tag: Tag }) {
-  const view = useGaveta((s) => s.view);
-  const setView = useGaveta((s) => s.setView);
-  const conversations = useGaveta((s) => s.conversations);
-  const renameTag = useGaveta((s) => s.renameTag);
-  const deleteTag = useGaveta((s) => s.deleteTag);
+  const view = useStowlet((s) => s.view);
+  const setView = useStowlet((s) => s.setView);
+  const conversations = useStowlet((s) => s.conversations);
+  const renameTag = useStowlet((s) => s.renameTag);
+  const deleteTag = useStowlet((s) => s.deleteTag);
   const [renaming, setRenaming] = useState(false);
 
   const count = conversations.filter((c) => c.tagIds.includes(tag.id)).length;

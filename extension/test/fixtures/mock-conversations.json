@@ -84,10 +84,14 @@
       "createdAt": 1737500000000,
       "updatedAt": 1737503600000,
       "messages": [
-        { "role": "user", "text": "Translate 'gaveta' from Portuguese.", "ts": 1737500000000 },
+        {
+          "role": "user",
+          "text": "Translate 'to stow away' into Portuguese.",
+          "ts": 1737500000000
+        },
         {
           "role": "assistant",
-          "text": "Gaveta means drawer, as in a desk drawer.",
+          "text": "Guardar, or arrumar when you mean tidying things into their place.",
           "ts": 1737500010000
         }
       ]

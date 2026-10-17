@@ -3,7 +3,7 @@ import {
   parseRemoteConfig,
   REMOTE_CONFIG_URL,
   type RemoteConfig,
-} from '@gaveta/shared';
+} from '@stowlet/shared';
 import { browser } from 'wxt/browser';
 import { errorKind, log } from './log';
 

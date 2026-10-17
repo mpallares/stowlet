@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { ConversationMeta } from '@/db';
-import { keyOf } from '@/store/gavetaStore';
-import { useGaveta } from '@/store/context';
+import { keyOf } from '@/store/stowletStore';
+import { useStowlet } from '@/store/context';
 import { can } from '@/entitlements';
 import { relativeTime } from '@/lib/time';
 import { setDragKey } from './dnd';
@@ -19,20 +19,20 @@ interface Props {
 
 export function ConversationRow({ meta, subtitle, conversationUrl }: Props) {
   const key = keyOf(meta);
-  const folders = useGaveta((s) => s.folders);
-  const items = useGaveta((s) => s.items);
-  const tags = useGaveta((s) => s.tags);
-  const current = useGaveta((s) => s.currentConversationId);
-  const togglePinned = useGaveta((s) => s.togglePinned);
-  const moveToFolder = useGaveta((s) => s.moveToFolder);
-  const toggleTag = useGaveta((s) => s.toggleTag);
-  const createTag = useGaveta((s) => s.createTag);
-  const setNote = useGaveta((s) => s.setNote);
-  const requirePro = useGaveta((s) => s.requirePro);
-  const dragging = useGaveta((s) => s.dragging);
-  const setDragging = useGaveta((s) => s.setDragging);
-  const exportConversation = useGaveta((s) => s.exportConversation);
-  const tier = useGaveta((s) => s.license.tier);
+  const folders = useStowlet((s) => s.folders);
+  const items = useStowlet((s) => s.items);
+  const tags = useStowlet((s) => s.tags);
+  const current = useStowlet((s) => s.currentConversationId);
+  const togglePinned = useStowlet((s) => s.togglePinned);
+  const moveToFolder = useStowlet((s) => s.moveToFolder);
+  const toggleTag = useStowlet((s) => s.toggleTag);
+  const createTag = useStowlet((s) => s.createTag);
+  const setNote = useStowlet((s) => s.setNote);
+  const requirePro = useStowlet((s) => s.requirePro);
+  const dragging = useStowlet((s) => s.dragging);
+  const setDragging = useStowlet((s) => s.setDragging);
+  const exportConversation = useStowlet((s) => s.exportConversation);
+  const tier = useStowlet((s) => s.license.tier);
   const [editingNote, setEditingNote] = useState(false);
   const [newTag, setNewTag] = useState(false);
 

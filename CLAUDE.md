@@ -4,7 +4,7 @@ Guidance for AI assistants and humans working in this repo.
 
 ## What this is
 
-Gaveta: a Manifest V3 Chrome extension that adds folders, full-text search and
+Stowlet: a Manifest V3 Chrome extension that adds folders, full-text search and
 export to AI chat apps (ChatGPT and Claude now, Gemini and Grok later).
 Local-first. No chat content ever leaves the browser. No analytics, no
 telemetry, no remotely hosted code.
@@ -25,7 +25,7 @@ contract in `shared/src/adapters/VendorAdapter.ts` and implement it per vendor.
   terms, support; serves the remote config at `/config/v1/config.json`; external
   values live in `web/src/config.ts`).
 - UI mounted with WXT `createShadowRootUi`; styles stay inside the shadow root.
-- State: Zustand (vanilla store + `useGaveta` selector hook).
+- State: Zustand (vanilla store + `useStowlet` selector hook).
 - Persistence: Dexie (IndexedDB). Search: MiniSearch serialised into Dexie.
 - Settings only in `chrome.storage.sync` (license), small caches in `chrome.storage.local`.
 - Tests: Vitest (unit, `fake-indexeddb`), Playwright (unpacked extension in Chromium).
@@ -44,9 +44,9 @@ extension/src/adapters/mock/           MockAdapter fed by test/fixtures/mock-con
 extension/src/db/                      Dexie schema + small, pure-ish data access modules
 extension/src/lib/search/              SearchIndex (MiniSearch wrapper), indexer (incremental sync)
 extension/src/lib/export/              markdown/json formatting, filenames, download helper
-extension/src/store/gavetaStore.ts     Zustand store; all side effects go through it
+extension/src/store/stowletStore.ts     Zustand store; all side effects go through it
 extension/src/ui/                      React components, no vendor knowledge
-extension/src/entrypoints/             background.ts, gaveta.content/ (panel), popup/
+extension/src/entrypoints/             background.ts, stowlet.content/ (panel), popup/
 ```
 
 Data flow: content script resolves an adapter → store `init()` loads Dexie +
@@ -107,7 +107,7 @@ the actual file download with an anchor element, so no `downloads` permission.
 - Remote config is fetched from the background worker with a 5 s timeout and a
   6 h cache; the static host must send CORS headers so no extra host permission
   is needed. Config is data only, never code.
-- The e2e build (`GAVETA_E2E=1`) adds a localhost match and the MockAdapter;
+- The e2e build (`STOWLET_E2E=1`) adds a localhost match and the MockAdapter;
   the production manifest never contains it (asserted in CI).
 - WXT `experimental.escapeUnicode` is on: Chrome otherwise refuses the built
   content script with "isn't UTF-8 encoded" and silently skips the extension.
@@ -134,8 +134,8 @@ first chat-capable one; the conversation payload is a message tree walked from
 
 ```sh
 pnpm lint        pnpm typecheck     pnpm test      pnpm test:e2e     pnpm build
-pnpm --filter @gaveta/extension dev        # WXT dev server
-pnpm --filter @gaveta/extension build:e2e  # bundle with the localhost match
+pnpm --filter @stowlet/extension dev        # WXT dev server
+pnpm --filter @stowlet/extension build:e2e  # bundle with the localhost match
 pnpm demo:record                            # scripted landing-page demo video (see README)
 pnpm demo:stills                            # feature stills for the landing page from the mock page
 ```

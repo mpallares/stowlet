@@ -1,4 +1,4 @@
-import type { ConversationKey } from '@gaveta/shared';
+import type { ConversationKey } from '@stowlet/shared';
 import { newId } from '@/lib/id';
 import { FOLDER_COLORS } from './folders';
 import { getDb, type Tag } from './schema';

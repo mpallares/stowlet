@@ -1,5 +1,5 @@
 {
-  "name": "gaveta",
+  "name": "stowlet",
   "private": true,
   "type": "module",
   "packageManager": "pnpm@12.10.1",
@@ -10,12 +10,12 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm --filter @gaveta/extension test",
-    "test:e2e": "pnpm --filter @gaveta/extension test:e2e",
+    "test": "pnpm --filter @stowlet/extension test",
+    "test:e2e": "pnpm --filter @stowlet/extension test:e2e",
     "build": "pnpm -r --if-present build",
-    "dev": "pnpm --filter @gaveta/extension dev",
-    "demo:record": "pnpm --filter @gaveta/extension demo:record",
-    "demo:stills": "pnpm --filter @gaveta/extension demo:stills"
+    "dev": "pnpm --filter @stowlet/extension dev",
+    "demo:record": "pnpm --filter @stowlet/extension demo:record",
+    "demo:stills": "pnpm --filter @stowlet/extension demo:stills"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.0",

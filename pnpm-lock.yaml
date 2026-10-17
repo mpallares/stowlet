@@ -193,7 +193,7 @@ importers:
 
   extension:
     dependencies:
-      '@gaveta/shared':
+      '@stowlet/shared':
         specifier: workspace:*
         version: link:../shared
       dexie:

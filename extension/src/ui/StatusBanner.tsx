@@ -1,27 +1,27 @@
-import { useGaveta } from '@/store/context';
+import { useStowlet } from '@/store/context';
 import { PRICING_URL, UPGRADE_COPY } from '@/entitlements';
 
 const TEXT: Partial<Record<ReturnType<typeof useStatus>, string>> = {
   'needs-update':
-    'Gaveta needs an update for this site. Folders and search still work on what is already indexed.',
-  unauthenticated: 'Log in to the chat app so Gaveta can read your conversations.',
+    'Stowlet needs an update for this site. Folders and search still work on what is already indexed.',
+  unauthenticated: 'Log in to the chat app so Stowlet can read your conversations.',
   network: 'Network problem while syncing. Will retry on next navigation.',
-  disabled: 'This site is temporarily disabled by the Gaveta team.',
+  disabled: 'This site is temporarily disabled by the Stowlet team.',
 };
 
 function useStatus() {
-  return useGaveta((s) => s.status);
+  return useStowlet((s) => s.status);
 }
 
 export function StatusBanner() {
   const status = useStatus();
-  const notice = useGaveta((s) => s.notice);
-  const progress = useGaveta((s) => s.progress);
-  const exportProgress = useGaveta((s) => s.exportProgress);
-  const upgrade = useGaveta((s) => s.upgrade);
-  const dismissUpgrade = useGaveta((s) => s.dismissUpgrade);
-  const lastError = useGaveta((s) => s.lastError);
-  const dismissError = useGaveta((s) => s.dismissError);
+  const notice = useStowlet((s) => s.notice);
+  const progress = useStowlet((s) => s.progress);
+  const exportProgress = useStowlet((s) => s.exportProgress);
+  const upgrade = useStowlet((s) => s.upgrade);
+  const dismissUpgrade = useStowlet((s) => s.dismissUpgrade);
+  const lastError = useStowlet((s) => s.lastError);
+  const dismissError = useStowlet((s) => s.dismissError);
 
   const text = TEXT[status];
   return (

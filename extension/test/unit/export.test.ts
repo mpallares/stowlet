@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import type { Conversation } from '@gaveta/shared';
+import type { Conversation } from '@stowlet/shared';
 import { buildExport, exportFilename, slugify, toJson, toMarkdown } from '@/lib/export';
 
 const conversation: Conversation = {
@@ -58,7 +58,7 @@ describe('json export', () => {
   it('wraps the conversation in a versioned envelope', () => {
     const parsed: unknown = JSON.parse(toJson(conversation, 'chatgpt', new Date(0)));
     expect(parsed).toEqual({
-      format: 'gaveta.conversation',
+      format: 'stowlet.conversation',
       version: 1,
       exportedAt: '1970-01-01T00:00:00.000Z',
       vendor: 'chatgpt',

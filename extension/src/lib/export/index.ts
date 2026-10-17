@@ -1,4 +1,4 @@
-import type { Conversation, ExportFile, ExportFormat, VendorId } from '@gaveta/shared';
+import type { Conversation, ExportFile, ExportFormat, VendorId } from '@stowlet/shared';
 import { exportFilename, MIME } from './filename';
 import { toJson } from './json';
 import { toMarkdown, type ExportExtras } from './markdown';

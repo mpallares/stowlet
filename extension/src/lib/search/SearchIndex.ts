@@ -1,5 +1,5 @@
 import MiniSearch, { type Options, type SearchResult } from 'minisearch';
-import type { Conversation, ConversationKey, VendorId } from '@gaveta/shared';
+import type { Conversation, ConversationKey, VendorId } from '@stowlet/shared';
 
 export interface SearchDoc {
   id: ConversationKey;
