@@ -13,7 +13,16 @@ import {
 import { can, limits, type Feature, type UpgradeReason } from '@/entitlements';
 import { createStore, type StoreApi } from 'zustand/vanilla';
 import * as db from '@/db';
-import type { ConversationMeta, Folder, FolderItem } from '@/db';
+import type { ConversationMeta, Folder, FolderItem, Tag } from '@/db';
+import type { Downloadable } from '@/lib/export/download';
+import {
+  buildZip,
+  planFolderExport,
+  uniquePath,
+  zipFilename,
+  type ExportExtras,
+  type ZipEntry,
+} from '@/lib/export';
 import { errorKind, log } from '@/lib/log';
 import { syncVendor, type SyncProgress } from '@/lib/search/indexer';
 import { SearchIndex, type SearchHit } from '@/lib/search/SearchIndex';
@@ -22,15 +31,28 @@ export type AdapterStatus =
   'booting' | 'ready' | 'syncing' | 'needs-update' | 'unauthenticated' | 'network' | 'disabled';
 
 export type View =
-  { kind: 'all' } | { kind: 'pinned' } | { kind: 'unfiled' } | { kind: 'folder'; id: string };
+  | { kind: 'all' }
+  | { kind: 'pinned' }
+  | { kind: 'unfiled' }
+  | { kind: 'folder'; id: string }
+  | { kind: 'tag'; id: string };
+
+export interface ExportProgress {
+  done: number;
+  total: number;
+}
 
 export interface GavetaDeps {
   adapter: VendorAdapter;
   getLicense: () => Promise<LicenseState>;
   getRemoteConfig: () => Promise<RemoteConfig>;
   /** Builds the export file (normally in the background worker). */
-  buildExport: (conversation: Conversation, format: ExportFormat) => Promise<ExportFile>;
-  download: (file: ExportFile) => void;
+  buildExport: (
+    conversation: Conversation,
+    format: ExportFormat,
+    extras: ExportExtras,
+  ) => Promise<ExportFile>;
+  download: (file: Downloadable) => void;
   readPanelOpen: () => Promise<boolean>;
   writePanelOpen: (open: boolean) => Promise<void>;
 }
@@ -41,6 +63,7 @@ export interface GavetaState {
   license: LicenseState;
   folders: Folder[];
   items: FolderItem[];
+  tags: Tag[];
   conversations: ConversationMeta[];
   view: View;
   expanded: Record<string, boolean>;
@@ -53,6 +76,8 @@ export interface GavetaState {
   progress: SyncProgress | null;
   /** Set when the user tried something their plan does not include. */
   upgrade: UpgradeReason | null;
+  /** Non-null while a folder export is fetching conversations. */
+  exportProgress: ExportProgress | null;
   lastError: string | null;
   /** Conversation currently being dragged, so drop targets can light up. */
   dragging: ConversationKey | null;
@@ -71,6 +96,15 @@ export interface GavetaState {
   moveToFolder: (key: ConversationKey, folderId: string | null) => Promise<void>;
   togglePinned: (key: ConversationKey) => Promise<void>;
   exportConversation: (key: ConversationKey, format: ExportFormat) => Promise<void>;
+  /** Downloads every chat in the folder (and its sub-folders) as one zip. Pro. */
+  exportFolder: (folderId: string, format: ExportFormat) => Promise<void>;
+  createTag: (name: string) => Promise<Tag | null>;
+  renameTag: (id: string, name: string) => Promise<void>;
+  deleteTag: (id: string) => Promise<void>;
+  /** Attaches or detaches a tag on a conversation. Pro. */
+  toggleTag: (key: ConversationKey, tagId: string) => Promise<void>;
+  /** Sets the note on a conversation; empty clears it. Pro. */
+  setNote: (key: ConversationKey, note: string) => Promise<void>;
   dismissUpgrade: () => void;
   /** Returns true when allowed; otherwise shows the upgrade banner and returns false. */
   requirePro: (feature: Feature) => boolean;
@@ -111,6 +145,17 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
       set({ hits: titleHits, hiddenMatches: all.length - titleHits.length });
     };
 
+    /** Tag names and note for a conversation, written into its export. */
+    const extrasFor = (key: ConversationKey): ExportExtras => {
+      const { conversations, tags } = get();
+      const meta = conversations.find((c) => c.id === key);
+      if (!meta) return {};
+      const names = meta.tagIds
+        .map((id) => tags.find((t) => t.id === id)?.name)
+        .filter((n): n is string => n !== undefined);
+      return { tags: names, note: meta.note };
+    };
+
     const guard = async (label: string, fn: () => Promise<void>): Promise<void> => {
       try {
         await fn();
@@ -126,6 +171,7 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
       license: DEFAULT_LICENSE_STATE,
       folders: [],
       items: [],
+      tags: [],
       conversations: [],
       view: { kind: 'all' },
       expanded: {},
@@ -136,6 +182,7 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
       currentConversationId: adapter.getCurrentConversationId(),
       progress: null,
       upgrade: null,
+      exportProgress: null,
       lastError: null,
       dragging: null,
 
@@ -183,14 +230,16 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
       },
 
       async refresh() {
-        const [folders, items, conversations] = await Promise.all([
+        const [folders, items, tags, conversations] = await Promise.all([
           db.listFolders(),
           db.listItems(),
+          db.listTags(),
           db.listConversationMeta(adapter.id),
         ]);
         set({
           folders,
           items,
+          tags,
           conversations,
           currentConversationId: adapter.getCurrentConversationId(),
         });
@@ -282,8 +331,108 @@ export function createGavetaStore(deps: GavetaDeps): GavetaStore {
             set({ lastError: `Could not load the conversation (${result.error.code})` });
             return;
           }
-          const file = await deps.buildExport(result.value, format);
+          const file = await deps.buildExport(result.value, format, extrasFor(key));
           deps.download(file);
+        }),
+
+      exportFolder: (folderId, format) =>
+        guard('export-folder', async () => {
+          if (!get().requirePro('bulk-export')) return;
+          const { folders, items, conversations } = get();
+          const folder = folders.find((f) => f.id === folderId);
+          if (!folder) return;
+          const known = new Set(conversations.map((c) => c.id));
+          const plan = planFolderExport(folders, items, folderId);
+          const mine = plan.filter((e) => e.vendorId === adapter.id && known.has(e.key));
+          const foreign = plan.length - mine.length;
+          if (mine.length === 0) {
+            set({
+              lastError:
+                foreign > 0
+                  ? 'The chats in this folder belong to another app; open it there to export them.'
+                  : 'This folder has no chats to export.',
+            });
+            return;
+          }
+          set({ exportProgress: { done: 0, total: mine.length } });
+          const entries: ZipEntry[] = [];
+          const used = new Set<string>();
+          let failed = 0;
+          try {
+            for (const entry of mine) {
+              const result = await adapter.getConversation(entry.conversationId);
+              if (result.ok) {
+                const file = await deps.buildExport(result.value, format, extrasFor(entry.key));
+                entries.push({
+                  path: uniquePath(used, entry.dir + file.filename),
+                  content: file.content,
+                });
+              } else {
+                failed += 1;
+              }
+              set({ exportProgress: { done: entries.length + failed, total: mine.length } });
+            }
+          } finally {
+            set({ exportProgress: null });
+          }
+          if (entries.length === 0) {
+            set({ lastError: 'Could not load any chat in this folder. Try again in a moment.' });
+            return;
+          }
+          deps.download({
+            filename: zipFilename(folder.name),
+            mime: 'application/zip',
+            content: buildZip(entries),
+          });
+          const notes: string[] = [];
+          if (failed > 0) notes.push(`${failed} could not be loaded`);
+          if (foreign > 0) notes.push(`${foreign} from another app skipped`);
+          if (notes.length > 0) {
+            set({
+              lastError: `Exported ${entries.length} of ${plan.length} chats (${notes.join(', ')}).`,
+            });
+          }
+        }),
+
+      async createTag(name) {
+        if (!get().requirePro('tags')) return null;
+        try {
+          const tag = await db.createTag(name);
+          await get().refresh();
+          return tag;
+        } catch (e) {
+          log.error('store', 'create-tag-failed', { kind: errorKind(e) });
+          set({ lastError: e instanceof Error ? e.message : 'Could not create tag' });
+          return null;
+        }
+      },
+
+      renameTag: (id, name) =>
+        guard('rename-tag', async () => {
+          await db.renameTag(id, name);
+          await get().refresh();
+        }),
+
+      deleteTag: (id) =>
+        guard('delete-tag', async () => {
+          await db.deleteTag(id);
+          const { view } = get();
+          if (view.kind === 'tag' && view.id === id) set({ view: { kind: 'all' } });
+          await get().refresh();
+        }),
+
+      toggleTag: (key, tagId) =>
+        guard('toggle-tag', async () => {
+          if (!get().requirePro('tags')) return;
+          await db.toggleTag(key, tagId);
+          await get().refresh();
+        }),
+
+      setNote: (key, note) =>
+        guard('set-note', async () => {
+          if (!get().requirePro('notes')) return;
+          await db.setNote(key, note);
+          await get().refresh();
         }),
 
       dismissUpgrade() {
@@ -350,5 +499,7 @@ export function visibleConversations(
         return fid !== undefined && ids.has(fid);
       });
     }
+    case 'tag':
+      return conversations.filter((c) => c.tagIds.includes(view.id));
   }
 }

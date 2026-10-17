@@ -29,8 +29,13 @@ export default defineContentScript({
       adapter,
       getLicense: () => sendToBackground('license:get', {}),
       getRemoteConfig: () => sendToBackground('remoteConfig:get', {}),
-      buildExport: (conversation, format) =>
-        sendToBackground('export:conversation', { vendorId: adapter.id, format, conversation }),
+      buildExport: (conversation, format, extras) =>
+        sendToBackground('export:conversation', {
+          vendorId: adapter.id,
+          format,
+          conversation,
+          ...extras,
+        }),
       download: downloadFile,
       readPanelOpen,
       writePanelOpen,
