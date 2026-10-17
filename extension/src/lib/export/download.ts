@@ -1,8 +1,13 @@
-import type { ExportFile } from '@gaveta/shared';
+/** Anything the panel can hand to the browser as a file. */
+export interface Downloadable {
+  filename: string;
+  mime: string;
+  content: string | Uint8Array;
+}
 
 /** Triggers a browser download from the page context. No `downloads` permission needed. */
-export function downloadFile(file: ExportFile, doc: Document = document): void {
-  const blob = new Blob([file.content], { type: file.mime });
+export function downloadFile(file: Downloadable, doc: Document = document): void {
+  const blob = new Blob([file.content as BlobPart], { type: file.mime });
   const url = URL.createObjectURL(blob);
   const a = doc.createElement('a');
   a.href = url;
