@@ -15,7 +15,11 @@ export default defineBackground(() => {
     'remoteConfig:get': () => getRemoteConfig(),
     'license:get': () => getLicenseState(),
     'license:setKey': (req) => setLicenseKey(req.key),
-    'export:conversation': async (req) => buildExport(req.conversation, req.vendorId, req.format),
+    'export:conversation': async (req) =>
+      buildExport(req.conversation, req.vendorId, req.format, new Date(), {
+        tags: req.tags ?? [],
+        note: req.note ?? '',
+      }),
   });
 
   browser.runtime.onInstalled.addListener(() => {

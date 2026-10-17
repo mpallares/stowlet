@@ -40,6 +40,13 @@ describe('markdown export', () => {
     `);
   });
 
+  it('writes tags and the note when given', () => {
+    const md = toMarkdown(conversation, 'ChatGPT', { tags: ['bread', 'todo'], note: 'Try rye.' });
+    expect(md).toContain('- Tags: bread, todo\n');
+    expect(md).toContain('## Note\n\nTry rye.\n\n## User');
+    expect(toMarkdown(conversation, 'ChatGPT', { tags: [], note: '  ' })).not.toContain('Note');
+  });
+
   it('falls back to a title when empty', () => {
     expect(toMarkdown({ ...conversation, title: '  ' }, 'Mock')).toMatch(
       /^# Untitled conversation/,
@@ -55,6 +62,8 @@ describe('json export', () => {
       version: 1,
       exportedAt: '1970-01-01T00:00:00.000Z',
       vendor: 'chatgpt',
+      tags: [],
+      note: '',
       conversation,
     });
   });

@@ -17,7 +17,14 @@ export interface MessageMap {
   'license:get': { request: Record<string, never>; response: LicenseState };
   'license:setKey': { request: { key: string | null }; response: LicenseState };
   'export:conversation': {
-    request: { vendorId: VendorId; format: ExportFormat; conversation: Conversation };
+    request: {
+      vendorId: VendorId;
+      format: ExportFormat;
+      conversation: Conversation;
+      /** User's own tags and note for this chat, written into the file. */
+      tags?: string[];
+      note?: string;
+    };
     response: ExportFile;
   };
 }
