@@ -7,14 +7,11 @@ import { ButtonLink } from '@/components/Button';
 import { Container } from '@/components/Container';
 import { Faq, type FaqItem } from '@/components/Faq';
 import { PageShell } from '@/components/PageShell';
+import { Pricing } from '@/components/Pricing';
 import {
   CHROME_WEB_STORE_URL,
   DESCRIPTION,
-  FOUNDING_SEATS,
   FREE_FOLDER_LIMIT,
-  LEMON_SQUEEZY_ANNUAL_URL,
-  LEMON_SQUEEZY_LIFETIME_URL,
-  LEMON_SQUEEZY_MONTHLY_URL,
   LISTING_TITLE,
   PRICE_ANNUAL,
   PRICE_LIFETIME,
@@ -27,6 +24,7 @@ import {
   TEAMS_MIN_SEATS,
   mailto,
 } from '@/config';
+import { paddleSettings } from '@/lib/paddle';
 
 export const metadata: Metadata = {
   title: { absolute: LISTING_TITLE },
@@ -464,56 +462,10 @@ export default function Home() {
             Start free. Pay once if you like it.
           </h2>
           <p className="mt-2 text-neutral-600 dark:text-neutral-400">
-            One license key works on every Chrome profile you use. Prices in USD.
+            One license key works on every Chrome profile you use. Prices are shown for your
+            country; any sales tax is confirmed at checkout.
           </p>
-          <div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            <Plan
-              name="Free"
-              price="$0"
-              period=""
-              items={[
-                '5 folders (no sub-folders)',
-                'Title search only',
-                'Single-chat Markdown export',
-              ]}
-              cta={{ href: CHROME_WEB_STORE_URL, label: 'Add to Chrome', external: true }}
-            />
-            <Plan
-              name="Pro monthly"
-              price={PRICE_MONTHLY}
-              period="per month"
-              items={proItems}
-              cta={{ href: LEMON_SQUEEZY_MONTHLY_URL, label: 'Buy monthly', external: true }}
-            />
-            <Plan
-              name="Pro annual"
-              price={PRICE_ANNUAL}
-              period="per year"
-              badge="Best value"
-              items={proItems}
-              cta={{ href: LEMON_SQUEEZY_ANNUAL_URL, label: 'Buy annual', external: true }}
-              highlight
-            />
-            <Plan
-              name="Pro lifetime"
-              price={PRICE_LIFETIME_FOUNDING ?? PRICE_LIFETIME}
-              compareAt={PRICE_LIFETIME_FOUNDING ? PRICE_LIFETIME : undefined}
-              period="once"
-              badge={PRICE_LIFETIME_FOUNDING ? 'Founding price' : undefined}
-              note={
-                PRICE_LIFETIME_FOUNDING
-                  ? `For the first ${FOUNDING_SEATS} licenses, then ${PRICE_LIFETIME}.`
-                  : undefined
-              }
-              items={[
-                'Everything in Pro, forever',
-                'All current and future assistants',
-                'All future updates',
-                'Pay once',
-              ]}
-              cta={{ href: LEMON_SQUEEZY_LIFETIME_URL, label: 'Buy lifetime', external: true }}
-            />
-          </div>
+          <Pricing paddle={paddleSettings()} proItems={proItems} />
           <div className="mt-6 flex flex-col gap-4 rounded-2xl border border-dashed border-neutral-300 p-6 sm:flex-row sm:items-center sm:justify-between dark:border-neutral-700">
             <div>
               <h3 className="text-lg font-semibold">
@@ -578,72 +530,5 @@ function Eyebrow({ children, light = false }: { children: ReactNode; light?: boo
     >
       {children}
     </p>
-  );
-}
-
-function Plan({
-  name,
-  price,
-  period,
-  items,
-  cta,
-  badge,
-  compareAt,
-  note,
-  highlight = false,
-}: {
-  name: string;
-  price: string;
-  period: string;
-  items: string[];
-  cta: { href: string; label: string; external: boolean };
-  badge?: string;
-  compareAt?: string;
-  note?: string;
-  highlight?: boolean;
-}) {
-  return (
-    <div
-      className={`card card-hover flex flex-col p-6 ${highlight ? 'plan-highlight border-transparent' : ''}`}
-    >
-      <div className="flex flex-wrap items-center justify-between gap-2">
-        <h3 className="text-lg font-semibold whitespace-nowrap">{name}</h3>
-        {badge ? (
-          <span className="shrink-0 rounded-full bg-accent px-2.5 py-0.5 text-xs font-medium whitespace-nowrap text-white dark:bg-orange-500 dark:text-neutral-950">
-            {badge}
-          </span>
-        ) : null}
-      </div>
-      <p className="mt-4">
-        {compareAt ? (
-          <span className="mr-2 text-lg text-neutral-500 line-through dark:text-neutral-400">
-            {compareAt}
-          </span>
-        ) : null}
-        <span className="text-4xl font-semibold tracking-tight">{price}</span>
-        {period ? (
-          <span className="ml-1 text-sm text-neutral-500 dark:text-neutral-400">{period}</span>
-        ) : null}
-      </p>
-      {note ? <p className="mt-1 text-xs text-neutral-500 dark:text-neutral-400">{note}</p> : null}
-      <ul className="mt-6 flex-1 space-y-2.5 text-sm leading-6 text-neutral-700 dark:text-neutral-300">
-        {items.map((i) => (
-          <li key={i} className="flex gap-2.5">
-            <span className="mt-1.5 text-accent dark:text-orange-400">
-              <Icon name="check" className="h-3.5 w-3.5" />
-            </span>
-            {i}
-          </li>
-        ))}
-      </ul>
-      <ButtonLink
-        href={cta.href}
-        external={cta.external}
-        variant={highlight ? 'primary' : 'secondary'}
-        className="mt-6"
-      >
-        {cta.label}
-      </ButtonLink>
-    </div>
   );
 }
