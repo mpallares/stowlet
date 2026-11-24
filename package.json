@@ -10,7 +10,7 @@
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
     "typecheck": "pnpm -r --if-present typecheck",
-    "test": "pnpm --filter @stowlet/extension test",
+    "test": "pnpm -r --if-present test",
     "test:e2e": "pnpm --filter @stowlet/extension test:e2e",
     "build": "pnpm -r --if-present build",
     "dev": "pnpm --filter @stowlet/extension dev",
