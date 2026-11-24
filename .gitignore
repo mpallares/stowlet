@@ -8,6 +8,7 @@ playwright-report
 *.log
 .DS_Store
 .env*
+!.env.example
 extension/test/fixtures/chatgpt/*.json
 !extension/test/fixtures/chatgpt/.gitkeep
 extension/test/fixtures/claude/*.json
