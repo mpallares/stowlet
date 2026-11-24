@@ -61,10 +61,10 @@ export default function TermsPage() {
 
       <h2>4. Payments and refunds</h2>
       <p>
-        Purchases are processed by Lemon Squeezy, which acts as merchant of record. Its terms and
-        privacy policy apply to the checkout. Refunds are available within 14 days of purchase.
-        Email <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> with your order number and we
-        will issue the refund through Lemon Squeezy. After a refund the license key stops working.
+        Purchases are processed by Paddle, which acts as merchant of record. Its terms and privacy
+        policy apply to the checkout. Refunds are available within 14 days of purchase. Email{' '}
+        <a href={`mailto:${SUPPORT_EMAIL}`}>{SUPPORT_EMAIL}</a> with your order number and we will
+        issue the refund through Paddle. After a refund the license key stops working.
       </p>
 
       <h2>5. Your data</h2>

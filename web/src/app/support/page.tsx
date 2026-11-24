@@ -48,8 +48,9 @@ export default function SupportPage() {
 
       <h2>Finding and entering your license key</h2>
       <p>
-        After checkout, Lemon Squeezy emails you a receipt with the license key and also shows it on
-        the order confirmation page. The key looks like a long string of letters, digits and dashes.
+        After checkout, Paddle emails you a receipt and we email you the license key separately, to
+        the address you used at checkout. The key looks like a long string of letters, digits and
+        dashes.
       </p>
       <ol>
         <li>
@@ -126,8 +127,8 @@ export default function SupportPage() {
       <p>
         Within 14 days of purchase, email{' '}
         <a href={mailto(`${SITE_NAME} refund`)}>{SUPPORT_EMAIL}</a> with the order number from your
-        Lemon Squeezy receipt. The refund is issued through Lemon Squeezy to the original payment
-        method, and the key is deactivated.
+        Paddle receipt. The refund is issued through Paddle to the original payment method, and the
+        key is deactivated.
       </p>
 
       <h2>Removing your data</h2>
