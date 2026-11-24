@@ -58,11 +58,10 @@ export default function PrivacyPage() {
       <h2>What the extension sends</h2>
       <h3>License validation</h3>
       <p>
-        When you enter a license key in the extension, the key is sent to our payment and licensing
-        provider, Lemon Squeezy, to check that it is valid and which plan it belongs to. The request
-        carries the key and a Chrome-generated instance identifier so the provider can count
-        activations. It does not carry any chat content, titles, folder names or browsing history.
-        Lemon Squeezy&apos;s handling of that request is described in its own privacy policy.
+        When you enter a license key in the extension, the key is sent to our license service to
+        check that it is valid and which plan it belongs to. The request carries the key and nothing
+        else: no chat content, titles, folder names or browsing history. Payments themselves are
+        handled by our payment provider, Paddle, under its own privacy policy.
       </p>
       <h3>Configuration file</h3>
       <p>
@@ -123,25 +122,37 @@ export default function PrivacyPage() {
       <h2>No sale, no sharing</h2>
       <p>
         We do not sell, rent, share or otherwise disclose any personal data, because we do not hold
-        any beyond what Lemon Squeezy processes for payment and licensing. We have no access to your
-        conversations.
+        any beyond your license record and what Paddle processes for payment. The license record is
+        the key, the email address you bought with, and the state of your purchase (which plan,
+        whether a subscription is active, and the Paddle identifiers that link them). We receive it
+        from Paddle when you buy, keep it in our database, and use the email address once, to send
+        you the key through our email provider. We never see your card details. We have no access to
+        your conversations.
       </p>
 
       <h2>This website</h2>
       <p>
-        This site is static. It sets no cookies and loads no third-party scripts, fonts or
-        analytics. Our hosting provider may keep standard access logs (IP address, user agent,
-        requested URL) for a limited time for security and operations. Checkout happens on Lemon
-        Squeezy&apos;s pages under its own policy.
+        This site loads no fonts or analytics, and we set no cookies of our own. After a purchase,
+        your browser tab remembers the order reference until you close it, so the thank-you page can
+        show your license key. Our hosting provider may keep standard access logs (IP address, user
+        agent, requested URL) for a limited time for security and operations.
+      </p>
+      <p>
+        There is one third-party script. The home page loads Paddle.js from our payment provider,
+        Paddle, to show prices for your country and to open the checkout. To do that Paddle receives
+        your IP address, and it may set cookies or use browser storage that it needs to run the
+        checkout and prevent fraud. The checkout itself is an overlay served by Paddle, and what you
+        type into it goes to Paddle under its own privacy policy, not to us. The other pages of this
+        site, including this one, do not load it.
       </p>
 
       <h2>How to delete everything</h2>
       <p>
         Uninstall the extension. Chrome removes the extension&apos;s IndexedDB database and its{' '}
         <code>chrome.storage</code> data at that point. If Chrome sync is on, the license-key value
-        in <code>chrome.storage.sync</code> is removed from the synced set as well. We hold nothing
-        to delete on our side; to delete the purchase record associated with your email, contact us
-        and we will relay the request to Lemon Squeezy.
+        in <code>chrome.storage.sync</code> is removed from the synced set as well. To delete your
+        license record and the purchase record associated with your email, contact us: we will
+        delete the former and relay the request for the latter to Paddle.
       </p>
 
       <h2>Your rights</h2>
