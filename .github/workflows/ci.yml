@@ -21,6 +21,11 @@ jobs:
       - run: pnpm typecheck
       - run: pnpm test
       - run: pnpm build
+        env:
+          # The web build refuses to run without a Paddle environment. Nothing calls Paddle
+          # at build time, so CI uses the sandbox environment with a placeholder token.
+          NEXT_PUBLIC_PADDLE_ENV: sandbox
+          NEXT_PUBLIC_PADDLE_CLIENT_TOKEN: test_ci_build_only
       - name: Assert production manifest only touches the two vendor hosts
         run: |
           node -e "
