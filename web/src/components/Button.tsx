@@ -17,6 +17,39 @@ const sizes: Record<Size, string> = {
   lg: 'min-h-12 px-6 text-base',
 };
 
+const base =
+  'inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-[background-color,box-shadow,transform] duration-150 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 active:translate-y-0';
+
+export function Button({
+  children,
+  onClick,
+  variant = 'primary',
+  size = 'md',
+  disabled = false,
+  className = '',
+  testId,
+}: {
+  children: ReactNode;
+  onClick: () => void;
+  variant?: Variant;
+  size?: Size;
+  disabled?: boolean;
+  className?: string;
+  testId?: string;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      disabled={disabled}
+      data-testid={testId}
+      className={`${base} cursor-pointer disabled:pointer-events-none disabled:opacity-50 ${styles[variant]} ${sizes[size]} ${className}`}
+    >
+      {children}
+    </button>
+  );
+}
+
 export function ButtonLink({
   href,
   children,
@@ -36,7 +69,7 @@ export function ButtonLink({
     <a
       href={href}
       {...(external ? { target: '_blank', rel: 'noopener noreferrer' } : {})}
-      className={`inline-flex items-center justify-center gap-2 rounded-xl font-medium transition-[background-color,box-shadow,transform] duration-150 hover:-translate-y-px focus-visible:outline-2 focus-visible:outline-offset-2 active:translate-y-0 ${styles[variant]} ${sizes[size]} ${className}`}
+      className={`${base} ${styles[variant]} ${sizes[size]} ${className}`}
     >
       {children}
     </a>
