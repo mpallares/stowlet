@@ -7,11 +7,11 @@ A Chrome extension (Manifest V3) built with WXT, React, Tailwind, Zustand, Dexie
 
 ## Layout
 
-| Path         | What                                                              |
-| ------------ | ----------------------------------------------------------------- |
-| `extension/` | The extension (WXT + React + TypeScript + Tailwind)               |
-| `shared/`    | Types and the `VendorAdapter` contract shared across packages     |
-| `web/`       | Marketing site (Next.js static export) and the remote-config stub |
+| Path         | What                                                          |
+| ------------ | ------------------------------------------------------------- |
+| `extension/` | The extension (WXT + React + TypeScript + Tailwind)           |
+| `shared/`    | Types and the `VendorAdapter` contract shared across packages |
+| `web/`       | Marketing site, checkout and license service (Next.js)        |
 
 ## Requirements
 
@@ -50,15 +50,35 @@ until that lands.
 
 ## Website
 
-`web/` is a static Next.js site: landing page, privacy, terms and support, plus the
-remote-config JSON. Every external value (store URL, checkout links, prices, support
+`web/` is a Next.js site: landing page with Paddle checkout, privacy, terms, support and
+the remote-config JSON, plus the license service under `/api` (see below). Every external value (store URL, checkout links, prices, support
 email, company name) is a constant in `web/src/config.ts`. The site is always dark;
 the demo video and stills are dark, so one palette is enough.
 
 ```sh
 pnpm --filter @stowlet/web dev     # http://localhost:3000
-pnpm --filter @stowlet/web build   # static export to web/out
+pnpm --filter @stowlet/web build   # pages are prerendered; /api routes need a Node host
 ```
+
+### Payments and licenses
+
+Paddle is the merchant of record. Copy `web/.env.example` to `web/.env.local` and fill it in;
+the build fails without a Paddle environment and client token.
+
+| Route                        | What it does                                                                                                                                              |
+| ---------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `POST /api/paddle/webhook`   | Verifies Paddle's signature, mirrors customers, subscriptions and completed transactions into Postgres, issues one license key per customer and emails it |
+| `POST /api/license/validate` | `{ key }` → `{ valid, tier }`, for the extension                                                                                                          |
+| `GET /api/license/claim`     | Lets `/welcome` show the key for the checkout that just finished                                                                                          |
+| `POST /api/portal`           | License key → redirect to the customer's Paddle billing portal (`/account`)                                                                               |
+
+```sh
+pnpm --filter @stowlet/web db:migrate   # apply web/db/schema.sql to DATABASE_URL
+pnpm --filter @stowlet/web test         # webhook, access-rule and portal tests (in-process Postgres)
+```
+
+Who gets Pro is decided in `web/src/server/billing/access.ts`. To revoke a key (refund,
+chargeback), set `licenses.revoked_at`; nothing does that automatically yet.
 
 ## Tests
 
