@@ -21,7 +21,7 @@ contract in `shared/src/adapters/VendorAdapter.ts` and implement it per vendor.
 ## Stack (fixed)
 
 - pnpm workspace: `extension/` (WXT + React 19 + TypeScript + Tailwind 4),
-  `shared/` (types + adapter contract), `web/` (Next.js static site: landing, privacy,
+  `shared/` (types + adapter contract), `web/` (Next.js site: landing with Paddle checkout, license service under `/api`, privacy,
   terms, support; serves the remote config at `/config/v1/config.json`; external
   values live in `web/src/config.ts`).
 - UI mounted with WXT `createShadowRootUi`; styles stay inside the shadow root.
@@ -115,6 +115,31 @@ the actual file download with an anchor element, so no `downloads` permission.
 - Playwright uses `channel: 'chromium'` (Chrome for Testing); branded Chrome
   removed `--load-extension`.
 
+## Payments (web only)
+
+- Paddle is the merchant of record. The landing page's pricing section (`web/src/components/Pricing.tsx`)
+  shows Paddle's localized totals (`PricePreview`, `formattedTotals` used verbatim, no price math)
+  and opens an overlay checkout that redirects to `/welcome`.
+- `NEXT_PUBLIC_PADDLE_ENV` and `NEXT_PUBLIC_PADDLE_CLIENT_TOKEN` are required (`web/.env.example`).
+  `web/src/lib/paddle.ts` throws at build time when they are missing or mismatched; there is no
+  default environment. Price IDs per environment live in `web/src/config.ts`.
+- Secrets (`PADDLE_API_KEY`, `PADDLE_NOTIFICATION_WEBHOOK_SECRET`, `DATABASE_URL`,
+  `RESEND_API_KEY`) are server-only env vars read through `web/src/server/env.ts`. Never give one
+  a `NEXT_PUBLIC_` name or import `web/src/server/` from a client component.
+- License service (`web/src/server/billing/`, routes in `web/src/app/api/`): the webhook verifies
+  the signature on the raw body, then mirrors Paddle state into Postgres (`web/db/schema.sql`).
+  Every write is an upsert keyed on the Paddle ID and guarded by `event_at`, because deliveries
+  repeat and arrive out of order. Only a fully processed event answers 2xx.
+- Access rules live only in `server/billing/access.ts`: active, trialing and past_due grant Pro;
+  paused and canceled do not; a scheduled change never revokes; a lifetime purchase grants Pro.
+- One license key per Paddle customer. The key is the customer's only credential (no accounts):
+  it unlocks the extension and opens the Paddle billing portal from `/account`.
+- Server logs carry codes and Paddle IDs only. Never an email address or a license key.
+- Rows in `customers`, `subscriptions`, `transactions`, `licenses`, the Paddle products and
+  prices, and the webhook notification destination are live state. Never delete them to tidy up.
+- Paddle.js is the site's only third-party script and loads on the home page only; the privacy
+  page says so. Keep the two in sync.
+
 ## Adapter fixtures
 
 The endpoint shapes in `adapters/chatgpt/config.ts` and `adapters/claude/config.ts`
@@ -142,7 +167,9 @@ pnpm demo:stills                            # feature stills for the landing pag
 
 ## Phase 2 TODOs (not built yet)
 
-- [ ] Lemon Squeezy license-key validation in the popup; background keeps `LicenseState.tier` in sync.
+- [ ] License-key validation in the popup: the background calls `POST /api/license/validate` on
+      the site and keeps `LicenseState.tier` in sync. The service exists; the extension side does not.
+- [ ] Revoke a license automatically on refund or chargeback (Paddle `adjustment` events).
 - [ ] Gemini adapter.
 - [ ] Grok adapter.
 - [ ] Client-side-encrypted sync of folders, pins and tags (never chat content unless opted in).
