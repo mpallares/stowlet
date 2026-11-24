@@ -15,7 +15,7 @@ export async function getLicenseState(): Promise<LicenseState> {
   };
 }
 
-/** Phase 1: stores the key only. Validation against Lemon Squeezy is a Phase 2 TODO. */
+/** Phase 1: stores the key only. Validation against the license service is a Phase 2 TODO. */
 export async function setLicenseKey(key: string | null): Promise<LicenseState> {
   const current = await getLicenseState();
   const trimmed = key?.trim() ?? '';

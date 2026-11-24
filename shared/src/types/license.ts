@@ -2,7 +2,7 @@ export type LicenseTier = 'free' | 'pro';
 
 export interface LicenseState {
   tier: LicenseTier;
-  /** Lemon Squeezy key as typed by the user. Not validated in Phase 1. */
+  /** License key as typed by the user. Not validated in Phase 1. */
   key: string | null;
   /** Epoch ms of the last validation attempt, null if never. */
   checkedAt: number | null;
