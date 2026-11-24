@@ -10,15 +10,42 @@ export const SITE_URL = 'https://stowlet.app';
 export const CHROME_WEB_STORE_URL =
   'https://chromewebstore.google.com/detail/REPLACE_WITH_EXTENSION_ID'; // TODO
 
-/** Lemon Squeezy checkout links. */
-export const LEMON_SQUEEZY_MONTHLY_URL =
-  'https://REPLACE.lemonsqueezy.com/checkout/buy/REPLACE_MONTHLY_VARIANT'; // TODO
-export const LEMON_SQUEEZY_ANNUAL_URL =
-  'https://REPLACE.lemonsqueezy.com/checkout/buy/REPLACE_ANNUAL_VARIANT'; // TODO
-export const LEMON_SQUEEZY_LIFETIME_URL =
-  'https://REPLACE.lemonsqueezy.com/checkout/buy/REPLACE_LIFETIME_VARIANT'; // TODO
+/**
+ * Paddle price IDs per environment. Sandbox and live are separate accounts with separate IDs.
+ * Which set is used comes from NEXT_PUBLIC_PADDLE_ENV (see src/lib/paddle.ts); the build
+ * fails if the selected set still holds a placeholder.
+ */
+export type PaddleEnvironment = 'sandbox' | 'production';
+export interface PaddlePriceIds {
+  monthly: string;
+  annual: string;
+  /** Sold while PRICE_LIFETIME_FOUNDING is set. */
+  lifetimeFounding: string;
+  lifetime: string;
+}
+export const PADDLE_PRICE_IDS: Record<PaddleEnvironment, PaddlePriceIds> = {
+  sandbox: {
+    monthly: 'pri_01m86gw0x2h0p432rwbt6np1dd',
+    annual: 'pri_01m86gw11n3c5j1vvky8cdfxhf',
+    lifetimeFounding: 'pri_01m86gw1axka7fdbmf31rvdp9g',
+    lifetime: 'pri_01m86gw1fy0gceav648s4tx55s',
+  },
+  production: {
+    monthly: 'REPLACE_LIVE_MONTHLY_PRICE_ID', // TODO
+    annual: 'REPLACE_LIVE_ANNUAL_PRICE_ID', // TODO
+    lifetimeFounding: 'REPLACE_LIVE_LIFETIME_FOUNDING_PRICE_ID', // TODO
+    lifetime: 'REPLACE_LIVE_LIFETIME_PRICE_ID', // TODO
+  },
+};
 
-/** Display prices. Keep them in sync with the Lemon Squeezy products. */
+/** Where Paddle sends the buyer after a successful checkout. */
+export const CHECKOUT_SUCCESS_PATH = '/welcome';
+
+/**
+ * USD list prices. The pricing section shows Paddle's own localized totals; these are only
+ * the fallback when Paddle.js cannot load, and feed the structured data. Keep them in sync
+ * with the Paddle prices.
+ */
 export const PRICE_MONTHLY = '$7';
 export const PRICE_ANNUAL = '$49';
 export const PRICE_LIFETIME = '$99';
@@ -35,7 +62,7 @@ export const SUPPORT_EMAIL = 'hello@stowlet.app';
 /** Shown on legal pages. */
 export const COMPANY_NAME = 'Stowlet'; // TODO: legal entity name
 export const GOVERNING_LAW = 'REPLACE_JURISDICTION'; // TODO: e.g. "Spain" or "the State of Delaware, USA"
-export const LEGAL_LAST_UPDATED = '2026-10-16';
+export const LEGAL_LAST_UPDATED = '2026-11-24';
 
 export const FREE_FOLDER_LIMIT = 5;
 
