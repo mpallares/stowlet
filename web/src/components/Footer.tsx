@@ -17,6 +17,7 @@ const groups = [
     title: 'Help',
     links: [
       { href: '/support', label: 'Support' },
+      { href: '/account', label: 'Manage purchase' },
       { href: '/privacy', label: 'Privacy' },
       { href: '/terms', label: 'Terms' },
       { href: `mailto:${SUPPORT_EMAIL}`, label: SUPPORT_EMAIL },
