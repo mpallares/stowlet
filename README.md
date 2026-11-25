@@ -45,8 +45,8 @@ feature asks it. Free: 5 folders (no sub-folders), title search only, single-cha
 Markdown export. Pro: unlimited folders and sub-folders, full-text content search,
 tags and notes, bulk export in Markdown and JSON. Content is indexed for everyone;
 Free sees title matches plus a count of hidden content matches. The license key is
-stored by the popup but not validated yet (Phase 2), so the tier stays `free`
-until that lands.
+entered in the popup; the background worker checks it with the site's license service,
+re-checks it once a day, and keeps the last confirmed tier when the service cannot be reached.
 
 ## Website
 
@@ -77,8 +77,10 @@ pnpm --filter @stowlet/web db:migrate   # apply web/db/schema.sql to DATABASE_UR
 pnpm --filter @stowlet/web test         # webhook, access-rule and portal tests (in-process Postgres)
 ```
 
-Who gets Pro is decided in `web/src/server/billing/access.ts`. To revoke a key (refund,
-chargeback), set `licenses.revoked_at`; nothing does that automatically yet.
+Who gets Pro is decided in `web/src/server/billing/access.ts`. An approved full
+refund or chargeback switches off what that payment bought, through Paddle's `adjustment`
+events. To revoke a key for another reason (for example one shared publicly), set
+`licenses.revoked_at` by hand.
 
 ## Tests
 
