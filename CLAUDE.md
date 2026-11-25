@@ -127,13 +127,23 @@ the actual file download with an anchor element, so no `downloads` permission.
   `RESEND_API_KEY`) are server-only env vars read through `web/src/server/env.ts`. Never give one
   a `NEXT_PUBLIC_` name or import `web/src/server/` from a client component.
 - License service (`web/src/server/billing/`, routes in `web/src/app/api/`): the webhook verifies
-  the signature on the raw body, then mirrors Paddle state into Postgres (`web/db/schema.sql`).
+  the signature on the raw body, then mirrors Paddle state into Postgres.
   Every write is an upsert keyed on the Paddle ID and guarded by `event_at`, because deliveries
   repeat and arrive out of order. Only a fully processed event answers 2xx.
+- Database access goes through Drizzle (`web/src/server/db/`). Tables are defined in
+  `db/schema.ts`; a schema change means editing that file, running `pnpm db:generate`, committing
+  the new file under `web/drizzle/`, and running `pnpm db:migrate` before the code that needs it
+  deploys. Never edit an applied migration. `0000` was hand-edited to be a no-op on the database
+  that predates migrations; later ones stay exactly as generated.
+- Queries live in `server/billing/store.ts` and take a `Db`, so tests run them on an in-process
+  PGlite built from the real migration files. Timestamps are strings end to end to keep Paddle's
+  microsecond precision for the `event_at` guards.
 - Access rules live only in `server/billing/access.ts`: active, trialing and past_due grant Pro;
   paused and canceled do not; a scheduled change never revokes; a lifetime purchase grants Pro.
   An approved full refund or chargeback (`adjustment` events) sets `transactions.refunded_at`,
-  which takes back what that payment bought; `licenses.revoked_at` is only ever set by hand.
+  which takes back what that payment bought, and cancels the subscription in Paddle when it was
+  its latest payment (the API key needs `subscription.write`); `licenses.revoked_at` is only
+  ever set by hand.
 - One license key per Paddle customer. The key is the customer's only credential (no accounts):
   it unlocks the extension and opens the Paddle billing portal from `/account`.
 - Server logs carry codes and Paddle IDs only. Never an email address or a license key.
