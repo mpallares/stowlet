@@ -1,7 +1,7 @@
 import { defineBackground } from 'wxt/utils/define-background';
 import { browser } from 'wxt/browser';
 import { buildExport } from '@/lib/export';
-import { getLicenseState, setLicenseKey } from '@/lib/license';
+import { getLicenseState, refreshLicenseIfStale, setLicenseKey } from '@/lib/license';
 import { log } from '@/lib/log';
 import { listenInBackground } from '@/lib/messaging';
 import { getRemoteConfig } from '@/lib/remoteConfig';
@@ -13,7 +13,13 @@ import { getRemoteConfig } from '@/lib/remoteConfig';
 export default defineBackground(() => {
   listenInBackground({
     'remoteConfig:get': () => getRemoteConfig(),
-    'license:get': () => getLicenseState(),
+    // Answer from storage at once so the panel never waits on the network; a due re-check
+    // runs afterwards and reaches open panels through the storage change it writes.
+    'license:get': async () => {
+      const state = await getLicenseState();
+      void refreshLicenseIfStale();
+      return state;
+    },
     'license:setKey': (req) => setLicenseKey(req.key),
     'export:conversation': async (req) =>
       buildExport(req.conversation, req.vendorId, req.format, new Date(), {
@@ -28,4 +34,5 @@ export default defineBackground(() => {
   });
 
   void getRemoteConfig();
+  void refreshLicenseIfStale();
 });
