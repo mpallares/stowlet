@@ -132,6 +132,8 @@ the actual file download with an anchor element, so no `downloads` permission.
   repeat and arrive out of order. Only a fully processed event answers 2xx.
 - Access rules live only in `server/billing/access.ts`: active, trialing and past_due grant Pro;
   paused and canceled do not; a scheduled change never revokes; a lifetime purchase grants Pro.
+  An approved full refund or chargeback (`adjustment` events) sets `transactions.refunded_at`,
+  which takes back what that payment bought; `licenses.revoked_at` is only ever set by hand.
 - One license key per Paddle customer. The key is the customer's only credential (no accounts):
   it unlocks the extension and opens the Paddle billing portal from `/account`.
 - Server logs carry codes and Paddle IDs only. Never an email address or a license key.
@@ -139,6 +141,17 @@ the actual file download with an anchor element, so no `downloads` permission.
   prices, and the webhook notification destination are live state. Never delete them to tidy up.
 - Paddle.js is the site's only third-party script and loads on the home page only; the privacy
   page says so. Keep the two in sync.
+
+## License in the extension
+
+- `lib/license.ts` owns it: the background sends the key (and nothing else) to
+  `LICENSE_VALIDATE_URL`, stores `{ tier, key, checkedAt, check }` in `chrome.storage.sync` and
+  re-checks a stored key once it is a day old. The key is never logged.
+- Only a well-formed answer changes the tier. Offline, a timeout or a 5xx is `unreachable` and
+  keeps the last confirmed tier; a new key that could not be checked grants nothing.
+- `license:get` answers from storage immediately and re-checks afterwards. Open panels follow
+  through `storage.onChanged` → the store's `reloadLicense()`, so no reload is needed.
+- The e2e build never calls the site: bundled remote config, no license re-check.
 
 ## Adapter fixtures
 
@@ -167,9 +180,6 @@ pnpm demo:stills                            # feature stills for the landing pag
 
 ## Phase 2 TODOs (not built yet)
 
-- [ ] License-key validation in the popup: the background calls `POST /api/license/validate` on
-      the site and keeps `LicenseState.tier` in sync. The service exists; the extension side does not.
-- [ ] Revoke a license automatically on refund or chargeback (Paddle `adjustment` events).
 - [ ] Gemini adapter.
 - [ ] Grok adapter.
 - [ ] Client-side-encrypted sync of folders, pins and tags (never chat content unless opted in).
