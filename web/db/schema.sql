@@ -33,8 +33,11 @@ CREATE TABLE IF NOT EXISTS transactions (
   product_id      TEXT NOT NULL,
   lifetime        BOOLEAN NOT NULL,
   completed_at    TIMESTAMPTZ NOT NULL,
+  refunded_at     TIMESTAMPTZ,                  -- set by an approved full refund or chargeback
   created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
+-- Added after the first deploy; a no-op on databases created from the statement above.
+ALTER TABLE transactions ADD COLUMN IF NOT EXISTS refunded_at TIMESTAMPTZ;
 CREATE INDEX IF NOT EXISTS transactions_customer_id_idx ON transactions (customer_id);
 
 -- One license key per customer. Whether it unlocks Pro is derived from the tables above.
@@ -42,6 +45,6 @@ CREATE TABLE IF NOT EXISTS licenses (
   license_key TEXT PRIMARY KEY,
   customer_id TEXT NOT NULL UNIQUE REFERENCES customers (customer_id),
   emailed_at  TIMESTAMPTZ,                      -- null until the key email was accepted
-  revoked_at  TIMESTAMPTZ,                      -- set by hand for refunds, chargebacks, leaked keys
+  revoked_at  TIMESTAMPTZ,                      -- set by hand, e.g. for a key shared publicly
   created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
