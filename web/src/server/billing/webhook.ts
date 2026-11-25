@@ -1,4 +1,6 @@
 import {
+  type AdjustmentCreatedEvent,
+  type AdjustmentUpdatedEvent,
   type CustomerCreatedEvent,
   type CustomerUpdatedEvent,
   type EventEntity,
@@ -14,6 +16,7 @@ import {
   ensureLicense,
   getCustomerEmail,
   markLicenseEmailed,
+  markTransactionRefunded,
   recordTransaction,
   upsertCustomer,
   upsertSubscription,
@@ -48,6 +51,9 @@ export async function processEvent(event: EventEntity, deps: WebhookDeps): Promi
       return handleSubscription(event, deps);
     case EventName.TransactionCompleted:
       return handleTransactionCompleted(event, deps);
+    case EventName.AdjustmentCreated:
+    case EventName.AdjustmentUpdated:
+      return handleAdjustment(event, deps);
     default:
       logEvent('webhook.ignored', { type: event.eventType });
   }
@@ -93,6 +99,27 @@ async function handleSubscription(
     scheduledChangeAction: sub.scheduledChange?.action ?? null,
     scheduledChangeAt: sub.scheduledChange?.effectiveAt ?? null,
     eventAt: event.occurredAt,
+  });
+}
+
+/**
+ * A refund or chargeback takes back what the transaction bought. Only an approved, full one
+ * counts: a pending refund may still be rejected, and a partial refund is a price adjustment.
+ */
+async function handleAdjustment(
+  event: AdjustmentCreatedEvent | AdjustmentUpdatedEvent,
+  deps: WebhookDeps,
+): Promise<void> {
+  const adj = event.data;
+  const takesBack = adj.action === 'refund' || adj.action === 'chargeback';
+  if (!takesBack || adj.status !== 'approved' || adj.type !== 'full') {
+    logEvent('webhook.adjustment.ignored', { adjustment: adj.id, action: adj.action });
+    return;
+  }
+  const known = await markTransactionRefunded(deps.db, adj.transactionId, event.occurredAt);
+  logEvent(known ? 'license.refunded' : 'webhook.adjustment.unknown-transaction', {
+    adjustment: adj.id,
+    transaction: adj.transactionId,
   });
 }
 

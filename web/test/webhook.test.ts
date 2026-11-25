@@ -7,6 +7,7 @@ import {
   CUSTOMER,
   type Harness,
   SUBSCRIPTION,
+  adjustmentEvent,
   createHarness,
   customerEvent,
   signedRequest,
@@ -179,6 +180,76 @@ describe('lifetime purchase', () => {
 
     await h.db.query('UPDATE licenses SET revoked_at = NOW()');
     expect(await tier()).toBe('free');
+  });
+});
+
+describe('refunds and chargebacks', () => {
+  const RENEWAL = 'txn_01testrenewal0000000000000';
+
+  it('ends Pro when a lifetime purchase is refunded, and is idempotent', async () => {
+    await deliver(customerEvent('customer.created', T0));
+    await deliver(transactionCompletedEvent(T2, { lifetime: true }));
+    expect(await tier()).toBe('pro');
+
+    expect((await deliver(adjustmentEvent('adjustment.updated', T3))).status).toBe(200);
+    expect(await tier()).toBe('free');
+
+    await deliver(adjustmentEvent('adjustment.updated', T4));
+    const rows = await h.db.query<{ refunded_at: Date }>('SELECT refunded_at FROM transactions');
+    expect(rows[0]?.refunded_at.toISOString()).toBe(new Date(T3).toISOString());
+    // The key still exists, so the customer can reach their invoices and buy again.
+    expect((await findEntitlement(h.db, await onlyKey()))?.revoked).toBe(false);
+  });
+
+  it('ends Pro when the latest subscription payment is refunded, until the next payment', async () => {
+    await buySubscription();
+    await deliver(adjustmentEvent('adjustment.created', T3));
+    expect(await tier()).toBe('free');
+
+    await deliver(transactionCompletedEvent(T4, { transactionId: RENEWAL }));
+    expect(await tier()).toBe('pro');
+  });
+
+  it('keeps Pro when an older payment is refunded but a later one stands', async () => {
+    await buySubscription();
+    await deliver(transactionCompletedEvent(T4, { transactionId: RENEWAL }));
+    await deliver(adjustmentEvent('adjustment.created', T4));
+    expect(await tier()).toBe('pro');
+  });
+
+  it('treats a chargeback like a refund', async () => {
+    await buySubscription();
+    await deliver(adjustmentEvent('adjustment.created', T3, { action: 'chargeback' }));
+    expect(await tier()).toBe('free');
+  });
+
+  it.each([
+    ['a refund still pending approval', { status: 'pending_approval' }],
+    ['a rejected refund', { status: 'rejected' }],
+    ['a partial refund', { kind: 'partial' as const }],
+    ['a credit', { action: 'credit' }],
+    ['a chargeback warning', { action: 'chargeback_warning' }],
+  ])('keeps Pro for %s', async (_name, options) => {
+    await buySubscription();
+    expect((await deliver(adjustmentEvent('adjustment.created', T3, options))).status).toBe(200);
+    expect(await tier()).toBe('pro');
+  });
+
+  it('acknowledges a refund for a transaction it never recorded', async () => {
+    await buySubscription();
+    const response = await deliver(
+      adjustmentEvent('adjustment.created', T3, {
+        transactionId: 'txn_01unknown00000000000000000',
+      }),
+    );
+    expect(response.status).toBe(200);
+    expect(await tier()).toBe('pro');
+  });
+
+  it('stops the welcome page handing out the key for a refunded transaction', async () => {
+    await buySubscription();
+    await deliver(adjustmentEvent('adjustment.created', T3));
+    expect(await claimLicenseByTransaction(h.db, 'txn_01testtransaction000000000', 30)).toBeNull();
   });
 });
 

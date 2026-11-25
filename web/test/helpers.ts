@@ -183,6 +183,46 @@ export function subscriptionEvent(
   });
 }
 
+export function adjustmentEvent(
+  type: 'adjustment.created' | 'adjustment.updated',
+  occurredAt: string,
+  options: {
+    transactionId?: string;
+    action?: string;
+    status?: string;
+    kind?: 'full' | 'partial';
+  } = {},
+) {
+  const totals = { subtotal: '4900', tax: '0', total: '4900' };
+  return envelope(type, occurredAt, {
+    id: 'adj_01testadjustment0000000000',
+    action: options.action ?? 'refund',
+    type: options.kind ?? 'full',
+    transaction_id: options.transactionId ?? 'txn_01testtransaction000000000',
+    subscription_id: null,
+    customer_id: CUSTOMER,
+    reason: 'requested by customer',
+    credit_applied_to_balance: null,
+    currency_code: 'USD',
+    status: options.status ?? 'approved',
+    items: [
+      {
+        id: 'adjitm_01testitem00000000000000',
+        item_id: 'txnitm_01testitem00000000000000',
+        type: options.kind ?? 'full',
+        amount: '4900',
+        proration: null,
+        totals,
+      },
+    ],
+    totals: { ...totals, fee: '317', earnings: '-4583', currency_code: 'USD' },
+    payout_totals: null,
+    tax_rates_used: [{ tax_rate: '0', totals }],
+    created_at: occurredAt,
+    updated_at: occurredAt,
+  });
+}
+
 export function transactionCompletedEvent(
   occurredAt: string,
   options: { lifetime?: boolean; transactionId?: string; customerId?: string } = {},

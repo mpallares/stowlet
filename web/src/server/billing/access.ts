@@ -7,6 +7,10 @@
  * - `canceled` does not grant Pro. Paddle only sets it once the cancellation takes effect,
  *   so a pending `scheduled_change` never revokes anything: the status is still `active`.
  * - A lifetime purchase grants Pro for as long as the license is not revoked.
+ * - An approved full refund or chargeback takes back what that payment bought: a refunded
+ *   lifetime purchase no longer counts, and a subscription whose latest payment was refunded
+ *   does not count until its next successful payment. This is applied in `findEntitlement`,
+ *   which only reports purchases that still stand.
  */
 export type Tier = 'free' | 'pro';
 
