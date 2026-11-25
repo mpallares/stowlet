@@ -73,13 +73,20 @@ the build fails without a Paddle environment and client token.
 | `POST /api/portal`           | License key → redirect to the customer's Paddle billing portal (`/account`)                                                                               |
 
 ```sh
-pnpm --filter @stowlet/web db:migrate   # apply web/db/schema.sql to DATABASE_URL
-pnpm --filter @stowlet/web test         # webhook, access-rule and portal tests (in-process Postgres)
+pnpm --filter @stowlet/web db:generate  # after editing src/server/db/schema.ts: write a new migration
+pnpm --filter @stowlet/web db:migrate   # apply the migrations in web/drizzle/ to the database
+pnpm --filter @stowlet/web test         # webhook, access-rule and portal tests (in-process Postgres, real migrations)
 ```
+
+The database is accessed through Drizzle. Tables are defined in
+`web/src/server/db/schema.ts` and every schema change ships as a numbered SQL file in
+`web/drizzle/`, generated with `db:generate` and committed. Run `db:migrate` against the
+database before deploying code that needs the change. Never edit a migration that has already
+been applied.
 
 Who gets Pro is decided in `web/src/server/billing/access.ts`. An approved full
 refund or chargeback switches off what that payment bought, through Paddle's `adjustment`
-events. To revoke a key for another reason (for example one shared publicly), set
+events, and cancels the subscription in Paddle when it was that subscription's latest payment. To revoke a key for another reason (for example one shared publicly), set
 `licenses.revoked_at` by hand.
 
 ## Tests
