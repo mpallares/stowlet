@@ -94,7 +94,7 @@ test('pro tier: tags, notes and a folder zip export', async ({ context }) => {
   // The background worker owns the license; flip it to Pro before the panel boots.
   const worker = context.serviceWorkers()[0] ?? (await context.waitForEvent('serviceworker'));
   await worker.evaluate(
-    "chrome.storage.sync.set({ license: { tier: 'pro', key: 'E2E', checkedAt: 0 } })",
+    "chrome.storage.sync.set({ license: { tier: 'pro', key: 'E2E', checkedAt: Date.now(), check: 'valid' } })",
   );
 
   const page = await context.newPage();
