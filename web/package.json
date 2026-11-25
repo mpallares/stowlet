@@ -11,6 +11,8 @@
     "db:migrate": "node --env-file-if-exists=.env.local scripts/migrate.mjs"
   },
   "dependencies": {
+    "@neon/config": "^1.14.6",
+    "@neon/env": "^2.1.9",
     "@paddle/paddle-js": "^1.6.6",
     "@paddle/paddle-node-sdk": "^3.12.0",
     "next": "^16.4.6",
