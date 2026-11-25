@@ -3,17 +3,26 @@ import { PLAN_SUMMARY } from '@/entitlements';
 import {
   DEFAULT_LICENSE_STATE,
   DEFAULT_REMOTE_CONFIG,
+  LICENSE_ACCOUNT_URL,
+  type LicenseCheck,
   type LicenseState,
   type RemoteConfig,
 } from '@stowlet/shared';
 import { browser } from 'wxt/browser';
 import { sendToBackground } from '@/lib/messaging';
 
+const CHECK_MESSAGE: Record<LicenseCheck, string> = {
+  valid: 'Pro is active.',
+  inactive: 'This key is genuine, but nothing behind it is active right now.',
+  invalid: 'That key was not recognised. Check it against your purchase email.',
+  unreachable: 'Could not reach stowlet.app to check the key. Try again in a moment.',
+};
+
 export function App() {
   const [license, setLicense] = useState<LicenseState>(DEFAULT_LICENSE_STATE);
   const [config, setConfig] = useState<RemoteConfig>(DEFAULT_REMOTE_CONFIG);
   const [key, setKey] = useState('');
-  const [saved, setSaved] = useState(false);
+  const [checking, setChecking] = useState(false);
   const version = browser.runtime.getManifest().version;
 
   useEffect(() => {
@@ -25,10 +34,12 @@ export function App() {
   }, []);
 
   const save = async (): Promise<void> => {
-    const next = await sendToBackground('license:setKey', { key });
-    setLicense(next);
-    setSaved(true);
-    setTimeout(() => setSaved(false), 1500);
+    setChecking(true);
+    try {
+      setLicense(await sendToBackground('license:setKey', { key }));
+    } finally {
+      setChecking(false);
+    }
   };
 
   return (
@@ -59,18 +70,34 @@ export function App() {
           id="license-key"
           value={key}
           onChange={(e) => setKey(e.target.value)}
-          placeholder="XXXX-XXXX-XXXX-XXXX"
+          data-testid="license-input"
+          spellCheck={false}
+          autoComplete="off"
+          placeholder="STOW-XXXXX-XXXXX-XXXXX-XXXXX-XXXXX"
           className="rounded border border-gray-300 px-2 py-1 text-sm dark:border-gray-600 dark:bg-gray-800"
         />
         <button
           type="button"
           onClick={() => void save()}
-          className="rounded bg-orange-700 px-2 py-1 text-sm text-white hover:bg-orange-800"
+          disabled={checking}
+          data-testid="license-save"
+          className="rounded bg-orange-700 px-2 py-1 text-sm text-white hover:bg-orange-800 disabled:opacity-60"
         >
-          {saved ? 'Saved' : 'Save key'}
+          {checking ? 'Checking…' : 'Save key'}
         </button>
+        {license.check && !checking ? (
+          <p className="text-xs" role="status" data-testid="license-status">
+            {CHECK_MESSAGE[license.check]}{' '}
+            {license.check === 'inactive' ? (
+              <a className="underline" href={LICENSE_ACCOUNT_URL} target="_blank" rel="noreferrer">
+                Manage your purchase
+              </a>
+            ) : null}
+          </p>
+        ) : null}
         <p className="text-xs text-gray-500">
-          Validation arrives in a later release. The key is stored only in your browser profile.
+          The key is checked with stowlet.app and stored in your browser profile. Nothing else is
+          sent.
         </p>
       </section>
 
