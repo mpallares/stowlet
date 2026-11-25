@@ -22,10 +22,9 @@ beforeEach(async () => {
 
 const deliver = (payload: object) => handleWebhookRequest(signedRequest(payload), h.deps);
 const count = async (table: string) =>
-  Number((await h.db.query<{ n: string }>(`SELECT COUNT(*) AS n FROM ${table}`))[0]?.n);
+  Number((await h.sql<{ n: string }>(`SELECT COUNT(*) AS n FROM ${table}`))[0]?.n);
 const onlyKey = async () =>
-  (await h.db.query<{ license_key: string }>('SELECT license_key FROM licenses'))[0]?.license_key ??
-  '';
+  (await h.sql<{ license_key: string }>('SELECT license_key FROM licenses'))[0]?.license_key ?? '';
 const tier = async () => resolveTier(await findEntitlement(h.db, await onlyKey()));
 
 const T0 = '2026-11-24T12:21:08Z';
@@ -124,7 +123,7 @@ describe('ordering', () => {
 
     // The real customer event then replaces the looked-up row.
     await deliver(customerEvent('customer.created', T0));
-    const rows = await h.db.query<{ email: string }>('SELECT email FROM customers');
+    const rows = await h.sql<{ email: string }>('SELECT email FROM customers');
     expect(rows).toEqual([{ email: 'buyer@example.test' }]);
   });
 
@@ -132,14 +131,14 @@ describe('ordering', () => {
     await deliver(customerEvent('customer.created', T0));
     await deliver(subscriptionEvent('subscription.canceled', T4, { status: 'canceled' }));
     await deliver(subscriptionEvent('subscription.created', T1));
-    const rows = await h.db.query<{ status: string }>('SELECT status FROM subscriptions');
+    const rows = await h.sql<{ status: string }>('SELECT status FROM subscriptions');
     expect(rows).toEqual([{ status: 'canceled' }]);
   });
 
   it('does not let an older customer event overwrite a newer email', async () => {
     await deliver(customerEvent('customer.updated', T3, 'new@example.test'));
     await deliver(customerEvent('customer.created', T0, 'old@example.test'));
-    const rows = await h.db.query<{ email: string }>('SELECT email FROM customers');
+    const rows = await h.sql<{ email: string }>('SELECT email FROM customers');
     expect(rows).toEqual([{ email: 'new@example.test' }]);
   });
 });
@@ -152,7 +151,7 @@ describe('access through the subscription lifecycle', () => {
         scheduledChange: { action: 'cancel', effective_at: T4, resume_at: null },
       }),
     );
-    const rows = await h.db.query<{ status: string; scheduled_change_action: string }>(
+    const rows = await h.sql<{ status: string; scheduled_change_action: string }>(
       'SELECT status, scheduled_change_action FROM subscriptions',
     );
     expect(rows).toEqual([{ status: 'active', scheduled_change_action: 'cancel' }]);
@@ -178,7 +177,7 @@ describe('lifetime purchase', () => {
     expect(await count('subscriptions')).toBe(0);
     expect(await tier()).toBe('pro');
 
-    await h.db.query('UPDATE licenses SET revoked_at = NOW()');
+    await h.sql('UPDATE licenses SET revoked_at = NOW()');
     expect(await tier()).toBe('free');
   });
 });
@@ -195,7 +194,7 @@ describe('refunds and chargebacks', () => {
     expect(await tier()).toBe('free');
 
     await deliver(adjustmentEvent('adjustment.updated', T4));
-    const rows = await h.db.query<{ refunded_at: Date }>('SELECT refunded_at FROM transactions');
+    const rows = await h.sql<{ refunded_at: Date }>('SELECT refunded_at FROM transactions');
     expect(rows[0]?.refunded_at.toISOString()).toBe(new Date(T3).toISOString());
     // The key still exists, so the customer can reach their invoices and buy again.
     expect((await findEntitlement(h.db, await onlyKey()))?.revoked).toBe(false);
@@ -268,7 +267,7 @@ describe('welcome-page claim', () => {
     expect(await claimLicenseByTransaction(h.db, txn, 30)).toBe(await onlyKey());
     expect(await claimLicenseByTransaction(h.db, 'txn_01unknown00000000000000000', 30)).toBeNull();
 
-    await h.db.query(`UPDATE transactions SET created_at = NOW() - INTERVAL '31 minutes'`);
+    await h.sql(`UPDATE transactions SET created_at = NOW() - INTERVAL '31 minutes'`);
     expect(await claimLicenseByTransaction(h.db, txn, 30)).toBeNull();
   });
 });

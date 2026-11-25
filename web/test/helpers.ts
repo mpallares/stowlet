@@ -1,9 +1,12 @@
 import { createHmac } from 'node:crypto';
-import { readFile } from 'node:fs/promises';
 import { PGlite } from '@electric-sql/pglite';
 import { Paddle } from '@paddle/paddle-node-sdk';
+import { drizzle } from 'drizzle-orm/pglite';
+import { migrate } from 'drizzle-orm/pglite/migrator';
+import { fileURLToPath } from 'node:url';
 import type { WebhookRequestDeps } from '@/server/billing/webhookRequest';
 import type { Db } from '@/server/db';
+import * as schema from '@/server/db/schema';
 
 export const SECRET = 'pdl_ntfset_test_secret';
 export const LIFETIME_PRICE = 'pri_01testlifetime0000000000000';
@@ -11,19 +14,23 @@ export const ANNUAL_PRICE = 'pri_01testannual00000000000000';
 export const CUSTOMER = 'ctm_01testcustomer000000000000';
 export const SUBSCRIPTION = 'sub_01testsubscription00000000';
 
-/** In-process Postgres loaded with the real schema file. */
-export async function createTestDb(): Promise<Db> {
+/** Runs plain SQL against the test database, for assertions and for arranging odd states. */
+export type RawSql = <T>(text: string, params?: unknown[]) => Promise<T[]>;
+
+/** In-process Postgres built by running the real migration files. */
+export async function createTestDb(): Promise<{ db: Db; sql: RawSql }> {
   const pg = new PGlite();
-  await pg.exec(await readFile(new URL('../db/schema.sql', import.meta.url), 'utf8'));
+  const db = drizzle(pg, { schema });
+  await migrate(db, { migrationsFolder: fileURLToPath(new URL('../drizzle', import.meta.url)) });
   return {
-    async query<T>(text: string, params: unknown[] = []): Promise<T[]> {
-      return (await pg.query<T>(text, params)).rows;
-    },
+    db,
+    sql: async <T>(text: string, params: unknown[] = []) => (await pg.query<T>(text, params)).rows,
   };
 }
 
 export interface Harness {
   db: Db;
+  sql: RawSql;
   deps: () => WebhookRequestDeps;
   emails: { to: string; key: string }[];
   customerLookups: string[];
@@ -32,7 +39,7 @@ export interface Harness {
 
 /** Real signature verification (Paddle SDK) and real SQL; only email and the Paddle API are faked. */
 export async function createHarness(): Promise<Harness> {
-  const db = await createTestDb();
+  const { db, sql } = await createTestDb();
   const paddle = new Paddle('unused-in-tests');
   const emails: Harness['emails'] = [];
   const customerLookups: string[] = [];
@@ -57,6 +64,7 @@ export async function createHarness(): Promise<Harness> {
   };
   return {
     db,
+    sql,
     deps: () => resolved,
     emails,
     customerLookups,

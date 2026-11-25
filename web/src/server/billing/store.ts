@@ -1,4 +1,6 @@
+import { and, desc, eq, isNull, sql } from 'drizzle-orm';
 import type { Db } from '../db';
+import { customers, licenses, subscriptions, transactions } from '../db/schema';
 import type { Entitlement } from './access';
 
 /**
@@ -11,20 +13,25 @@ export async function upsertCustomer(
   db: Db,
   c: { customerId: string; email: string; eventAt: string },
 ): Promise<void> {
-  await db.query(
-    `INSERT INTO customers (customer_id, email, event_at) VALUES ($1, $2, $3)
-     ON CONFLICT (customer_id) DO UPDATE
-       SET email = EXCLUDED.email, event_at = EXCLUDED.event_at, updated_at = NOW()
-       WHERE customers.event_at <= EXCLUDED.event_at`,
-    [c.customerId, c.email, c.eventAt],
-  );
+  await db
+    .insert(customers)
+    .values(c)
+    .onConflictDoUpdate({
+      target: customers.customerId,
+      set: {
+        email: sql`excluded.email`,
+        eventAt: sql`excluded.event_at`,
+        updatedAt: sql`now()`,
+      },
+      setWhere: sql`${customers.eventAt} <= excluded.event_at`,
+    });
 }
 
 export async function getCustomerEmail(db: Db, customerId: string): Promise<string | null> {
-  const rows = await db.query<{ email: string }>(
-    'SELECT email FROM customers WHERE customer_id = $1',
-    [customerId],
-  );
+  const rows = await db
+    .select({ email: customers.email })
+    .from(customers)
+    .where(eq(customers.customerId, customerId));
   return rows[0]?.email ?? null;
 }
 
@@ -40,29 +47,23 @@ export interface SubscriptionRow {
 }
 
 export async function upsertSubscription(db: Db, s: SubscriptionRow): Promise<void> {
-  await db.query(
-    `INSERT INTO subscriptions
-       (subscription_id, customer_id, status, price_id, product_id,
-        scheduled_change_action, scheduled_change_at, event_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
-     ON CONFLICT (subscription_id) DO UPDATE
-       SET customer_id = EXCLUDED.customer_id, status = EXCLUDED.status,
-           price_id = EXCLUDED.price_id, product_id = EXCLUDED.product_id,
-           scheduled_change_action = EXCLUDED.scheduled_change_action,
-           scheduled_change_at = EXCLUDED.scheduled_change_at,
-           event_at = EXCLUDED.event_at, updated_at = NOW()
-       WHERE subscriptions.event_at <= EXCLUDED.event_at`,
-    [
-      s.subscriptionId,
-      s.customerId,
-      s.status,
-      s.priceId,
-      s.productId,
-      s.scheduledChangeAction,
-      s.scheduledChangeAt,
-      s.eventAt,
-    ],
-  );
+  await db
+    .insert(subscriptions)
+    .values(s)
+    .onConflictDoUpdate({
+      target: subscriptions.subscriptionId,
+      set: {
+        customerId: sql`excluded.customer_id`,
+        status: sql`excluded.status`,
+        priceId: sql`excluded.price_id`,
+        productId: sql`excluded.product_id`,
+        scheduledChangeAction: sql`excluded.scheduled_change_action`,
+        scheduledChangeAt: sql`excluded.scheduled_change_at`,
+        eventAt: sql`excluded.event_at`,
+        updatedAt: sql`now()`,
+      },
+      setWhere: sql`${subscriptions.eventAt} <= excluded.event_at`,
+    });
 }
 
 export async function recordTransaction(
@@ -77,21 +78,9 @@ export async function recordTransaction(
     completedAt: string;
   },
 ): Promise<void> {
-  await db.query(
-    `INSERT INTO transactions
-       (transaction_id, customer_id, subscription_id, price_id, product_id, lifetime, completed_at)
-     VALUES ($1, $2, $3, $4, $5, $6, $7)
-     ON CONFLICT (transaction_id) DO NOTHING`,
-    [
-      t.transactionId,
-      t.customerId,
-      t.subscriptionId,
-      t.priceId,
-      t.productId,
-      t.lifetime,
-      t.completedAt,
-    ],
-  );
+  await db.insert(transactions).values(t).onConflictDoNothing({
+    target: transactions.transactionId,
+  });
 }
 
 /**
@@ -103,11 +92,11 @@ export async function markTransactionRefunded(
   transactionId: string,
   refundedAt: string,
 ): Promise<boolean> {
-  const rows = await db.query<{ transaction_id: string }>(
-    `UPDATE transactions SET refunded_at = COALESCE(refunded_at, $2)
-      WHERE transaction_id = $1 RETURNING transaction_id`,
-    [transactionId, refundedAt],
-  );
+  const rows = await db
+    .update(transactions)
+    .set({ refundedAt: sql`coalesce(${transactions.refundedAt}, ${refundedAt}::timestamptz)` })
+    .where(eq(transactions.transactionId, transactionId))
+    .returning({ transactionId: transactions.transactionId });
   return rows.length > 0;
 }
 
@@ -117,70 +106,80 @@ export async function ensureLicense(
   customerId: string,
   candidateKey: string,
 ): Promise<{ licenseKey: string; emailed: boolean }> {
-  await db.query(
-    `INSERT INTO licenses (license_key, customer_id) VALUES ($1, $2)
-     ON CONFLICT (customer_id) DO NOTHING`,
-    [candidateKey, customerId],
-  );
-  const rows = await db.query<{ license_key: string; emailed: boolean }>(
-    `SELECT license_key, emailed_at IS NOT NULL AS emailed FROM licenses WHERE customer_id = $1`,
-    [customerId],
-  );
+  await db
+    .insert(licenses)
+    .values({ licenseKey: candidateKey, customerId })
+    .onConflictDoNothing({ target: licenses.customerId });
+  const rows = await db
+    .select({ licenseKey: licenses.licenseKey, emailedAt: licenses.emailedAt })
+    .from(licenses)
+    .where(eq(licenses.customerId, customerId));
   const row = rows[0];
   if (!row) throw new Error('license-missing-after-insert');
-  return { licenseKey: row.license_key, emailed: row.emailed };
+  return { licenseKey: row.licenseKey, emailed: row.emailedAt !== null };
 }
 
 export async function markLicenseEmailed(db: Db, customerId: string): Promise<void> {
-  await db.query(
-    'UPDATE licenses SET emailed_at = NOW() WHERE customer_id = $1 AND emailed_at IS NULL',
-    [customerId],
-  );
+  await db
+    .update(licenses)
+    .set({ emailedAt: sql`now()` })
+    .where(and(eq(licenses.customerId, customerId), isNull(licenses.emailedAt)));
 }
 
 /** Everything `resolveTier` needs for a key; null when the key does not exist. */
 export async function findEntitlement(db: Db, licenseKey: string): Promise<Entitlement | null> {
-  const rows = await db.query<{
-    customer_id: string;
-    revoked: boolean;
-    lifetime: boolean;
-    statuses: string[];
-  }>(
-    `SELECT l.customer_id,
-            l.revoked_at IS NOT NULL AS revoked,
-            -- A lifetime purchase counts until it is refunded.
-            EXISTS (SELECT 1 FROM transactions t
-                     WHERE t.customer_id = l.customer_id AND t.lifetime
-                       AND t.refunded_at IS NULL) AS lifetime,
-            -- A subscription counts unless its most recent payment was refunded; the next
-            -- successful payment brings it back.
-            ARRAY(SELECT s.status FROM subscriptions s
-                   WHERE s.customer_id = l.customer_id
-                     AND NOT COALESCE(
-                       (SELECT t.refunded_at IS NOT NULL FROM transactions t
-                         WHERE t.subscription_id = s.subscription_id
-                         ORDER BY t.completed_at DESC LIMIT 1),
-                       FALSE)) AS statuses
-       FROM licenses l
-      WHERE l.license_key = $1`,
-    [licenseKey],
-  );
-  const row = rows[0];
-  if (!row) return null;
+  const [license] = await db
+    .select({ customerId: licenses.customerId, revokedAt: licenses.revokedAt })
+    .from(licenses)
+    .where(eq(licenses.licenseKey, licenseKey));
+  if (!license) return null;
+
+  const [lifetime, standing] = await Promise.all([
+    // A lifetime purchase counts until it is refunded.
+    db
+      .select({ transactionId: transactions.transactionId })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.customerId, license.customerId),
+          eq(transactions.lifetime, true),
+          isNull(transactions.refundedAt),
+        ),
+      )
+      .limit(1),
+    // A subscription counts unless its most recent payment was refunded; the next
+    // successful payment brings it back.
+    db
+      .select({ status: subscriptions.status })
+      .from(subscriptions)
+      .where(
+        and(
+          eq(subscriptions.customerId, license.customerId),
+          // Written out by name: in a single-table query Drizzle leaves column names
+          // unqualified, which a correlated subquery over the same table cannot use.
+          sql`not coalesce((
+            select latest.refunded_at is not null from transactions latest
+             where latest.subscription_id = subscriptions.subscription_id
+             order by latest.completed_at desc limit 1), false)`,
+        ),
+      ),
+  ]);
+
   return {
-    customerId: row.customer_id,
-    revoked: row.revoked,
-    lifetime: row.lifetime,
-    subscriptionStatuses: row.statuses,
+    customerId: license.customerId,
+    revoked: license.revokedAt !== null,
+    lifetime: lifetime.length > 0,
+    subscriptionStatuses: standing.map((s) => s.status),
   };
 }
 
 export async function listSubscriptionIds(db: Db, customerId: string): Promise<string[]> {
-  const rows = await db.query<{ subscription_id: string }>(
-    'SELECT subscription_id FROM subscriptions WHERE customer_id = $1',
-    [customerId],
-  );
-  return rows.map((r) => r.subscription_id);
+  const rows = await db
+    .select({ subscriptionId: subscriptions.subscriptionId })
+    .from(subscriptions)
+    .where(eq(subscriptions.customerId, customerId))
+    .orderBy(desc(subscriptions.createdAt));
+  return rows.map((r) => r.subscriptionId);
 }
 
 /**
@@ -193,14 +192,17 @@ export async function claimLicenseByTransaction(
   transactionId: string,
   windowMinutes: number,
 ): Promise<string | null> {
-  const rows = await db.query<{ license_key: string }>(
-    `SELECT l.license_key
-       FROM transactions t JOIN licenses l ON l.customer_id = t.customer_id
-      WHERE t.transaction_id = $1
-        AND l.revoked_at IS NULL
-        AND t.refunded_at IS NULL
-        AND t.created_at > NOW() - make_interval(mins => $2::int)`,
-    [transactionId, windowMinutes],
-  );
-  return rows[0]?.license_key ?? null;
+  const rows = await db
+    .select({ licenseKey: licenses.licenseKey })
+    .from(transactions)
+    .innerJoin(licenses, eq(licenses.customerId, transactions.customerId))
+    .where(
+      and(
+        eq(transactions.transactionId, transactionId),
+        isNull(licenses.revokedAt),
+        isNull(transactions.refundedAt),
+        sql`${transactions.createdAt} > now() - make_interval(mins => ${windowMinutes}::int)`,
+      ),
+    );
+  return rows[0]?.licenseKey ?? null;
 }
