@@ -83,6 +83,8 @@ export interface StowletState {
   dragging: ConversationKey | null;
 
   init: () => Promise<void>;
+  /** Re-reads the license from the background, e.g. after a key was saved in the popup. */
+  reloadLicense: () => Promise<void>;
   sync: () => Promise<void>;
   refresh: () => Promise<void>;
   setQuery: (q: string) => void;
@@ -185,6 +187,14 @@ export function createStowletStore(deps: StowletDeps): StowletStore {
       exportProgress: null,
       lastError: null,
       dragging: null,
+
+      async reloadLicense() {
+        const license = await deps.getLicense().catch(() => null);
+        if (!license) return;
+        // Becoming Pro clears a pending upgrade prompt; the gated action can simply be retried.
+        set(license.tier === 'pro' ? { license, upgrade: null } : { license });
+        await get().refresh();
+      },
 
       async init() {
         const [license, config, panelOpen, stored] = await Promise.all([

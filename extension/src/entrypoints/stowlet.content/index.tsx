@@ -1,4 +1,5 @@
 import { createRoot, type Root } from 'react-dom/client';
+import { browser } from 'wxt/browser';
 import { defineContentScript } from 'wxt/utils/define-content-script';
 import { createShadowRootUi } from 'wxt/utils/content-script-ui/shadow-root';
 import { resolveAdapter } from '@/adapters/registry';
@@ -74,6 +75,13 @@ export default defineContentScript({
     ctx.onInvalidated(() => themeObserver.disconnect());
 
     await store.getState().init();
+
+    // The background writes the license to storage when a key is saved or re-checked.
+    const onStorage = (changes: Record<string, unknown>, area: string): void => {
+      if (area === 'sync' && 'license' in changes) void store.getState().reloadLicense();
+    };
+    browser.storage.onChanged.addListener(onStorage);
+    ctx.onInvalidated(() => browser.storage.onChanged.removeListener(onStorage));
 
     const stop = adapter.observeNavigation(() => {
       void store.getState().sync();
