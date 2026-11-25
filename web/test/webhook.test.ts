@@ -220,6 +220,47 @@ describe('refunds and chargebacks', () => {
     await buySubscription();
     await deliver(adjustmentEvent('adjustment.created', T3, { action: 'chargeback' }));
     expect(await tier()).toBe('free');
+    expect(h.cancellations).toEqual([SUBSCRIPTION]);
+  });
+
+  it('cancels the subscription whose latest payment was refunded', async () => {
+    await buySubscription();
+    expect((await deliver(adjustmentEvent('adjustment.updated', T3))).status).toBe(200);
+    expect(h.cancellations).toEqual([SUBSCRIPTION]);
+  });
+
+  it('does not cancel again once the cancellation has been mirrored', async () => {
+    await buySubscription();
+    await deliver(adjustmentEvent('adjustment.updated', T3));
+    await deliver(subscriptionEvent('subscription.canceled', T4, { status: 'canceled' }));
+    await deliver(adjustmentEvent('adjustment.updated', T3));
+    expect(h.cancellations).toEqual([SUBSCRIPTION]);
+  });
+
+  it('answers non-2xx when the cancel fails, keeps access off, and retries on redelivery', async () => {
+    await buySubscription();
+    h.failCancel(true);
+    expect((await deliver(adjustmentEvent('adjustment.updated', T3))).status).toBe(500);
+    expect(await tier()).toBe('free');
+    expect(h.cancellations).toEqual([]);
+
+    h.failCancel(false);
+    expect((await deliver(adjustmentEvent('adjustment.updated', T3))).status).toBe(200);
+    expect(h.cancellations).toEqual([SUBSCRIPTION]);
+  });
+
+  it('does not cancel when an older payment is refunded', async () => {
+    await buySubscription();
+    await deliver(transactionCompletedEvent(T4, { transactionId: RENEWAL }));
+    await deliver(adjustmentEvent('adjustment.created', T4));
+    expect(h.cancellations).toEqual([]);
+  });
+
+  it('has nothing to cancel for a refunded lifetime purchase', async () => {
+    await deliver(customerEvent('customer.created', T0));
+    await deliver(transactionCompletedEvent(T2, { lifetime: true }));
+    await deliver(adjustmentEvent('adjustment.updated', T3));
+    expect(h.cancellations).toEqual([]);
   });
 
   it.each([
@@ -232,6 +273,7 @@ describe('refunds and chargebacks', () => {
     await buySubscription();
     expect((await deliver(adjustmentEvent('adjustment.created', T3, options))).status).toBe(200);
     expect(await tier()).toBe('pro');
+    expect(h.cancellations).toEqual([]);
   });
 
   it('acknowledges a refund for a transaction it never recorded', async () => {

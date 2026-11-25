@@ -20,5 +20,8 @@ export function webhookDeps(): WebhookRequestDeps {
     fetchCustomerEmail: async (customerId) => (await paddle.customers.get(customerId)).email,
     sendLicenseEmail,
     generateLicenseKey,
+    cancelSubscription: async (subscriptionId) => {
+      await paddle.subscriptions.cancel(subscriptionId, { effectiveFrom: 'immediately' });
+    },
   };
 }

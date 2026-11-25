@@ -17,6 +17,7 @@ import {
   getCustomerEmail,
   markLicenseEmailed,
   markTransactionRefunded,
+  subscriptionToCancelAfterRefund,
   recordTransaction,
   upsertCustomer,
   upsertSubscription,
@@ -30,6 +31,8 @@ export interface WebhookDeps {
   fetchCustomerEmail: (customerId: string) => Promise<string>;
   sendLicenseEmail: (to: string, licenseKey: string) => Promise<void>;
   generateLicenseKey: () => string;
+  /** Cancels a subscription in Paddle with immediate effect. */
+  cancelSubscription: (subscriptionId: string) => Promise<void>;
 }
 
 /** Timestamp for rows written from an API lookup, so any real customer event supersedes them. */
@@ -103,7 +106,8 @@ async function handleSubscription(
 }
 
 /**
- * A refund or chargeback takes back what the transaction bought. Only an approved, full one
+ * A refund or chargeback takes back what the transaction bought, and cancels the subscription
+ * it paid for when that was the subscription's latest payment. Only an approved, full one
  * counts: a pending refund may still be rejected, and a partial refund is a price adjustment.
  */
 async function handleAdjustment(
@@ -121,6 +125,17 @@ async function handleAdjustment(
     adjustment: adj.id,
     transaction: adj.transactionId,
   });
+  if (!known) return;
+
+  // A refund does not stop the subscription in Paddle: left alone it would bill again at the
+  // next renewal. Access is already off above; if this call fails we throw, Paddle redelivers,
+  // and the cancel is tried again. Once Paddle's subscription.canceled event has been mirrored,
+  // a redelivery finds nothing left to cancel.
+  const subscriptionId = await subscriptionToCancelAfterRefund(deps.db, adj.transactionId);
+  if (subscriptionId) {
+    await deps.cancelSubscription(subscriptionId);
+    logEvent('subscription.canceled-after-refund', { subscription: subscriptionId });
+  }
 }
 
 async function handleTransactionCompleted(

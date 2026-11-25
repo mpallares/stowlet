@@ -34,7 +34,10 @@ export interface Harness {
   deps: () => WebhookRequestDeps;
   emails: { to: string; key: string }[];
   customerLookups: string[];
+  /** Subscription IDs the handler asked Paddle to cancel, in order. */
+  cancellations: string[];
   failEmail: (fail: boolean) => void;
+  failCancel: (fail: boolean) => void;
 }
 
 /** Real signature verification (Paddle SDK) and real SQL; only email and the Paddle API are faked. */
@@ -43,7 +46,9 @@ export async function createHarness(): Promise<Harness> {
   const paddle = new Paddle('unused-in-tests');
   const emails: Harness['emails'] = [];
   const customerLookups: string[] = [];
+  const cancellations: string[] = [];
   let emailFails = false;
+  let cancelFails = false;
   let counter = 0;
   const resolved: WebhookRequestDeps = {
     db,
@@ -61,6 +66,11 @@ export async function createHarness(): Promise<Harness> {
       return Promise.resolve();
     },
     generateLicenseKey: () => `STOW-AAAAA-AAAAA-AAAAA-AAAAA-${String(counter++).padStart(5, '0')}`,
+    cancelSubscription: (subscriptionId) => {
+      if (cancelFails) return Promise.reject(new Error('paddle-down'));
+      cancellations.push(subscriptionId);
+      return Promise.resolve();
+    },
   };
   return {
     db,
@@ -68,8 +78,12 @@ export async function createHarness(): Promise<Harness> {
     deps: () => resolved,
     emails,
     customerLookups,
+    cancellations,
     failEmail: (fail) => {
       emailFails = fail;
+    },
+    failCancel: (fail) => {
+      cancelFails = fail;
     },
   };
 }

@@ -100,6 +100,32 @@ export async function markTransactionRefunded(
   return rows.length > 0;
 }
 
+/**
+ * The subscription a refunded transaction paid for, if that subscription should now be
+ * cancelled: the transaction is its most recent payment and it is not already cancelled.
+ * Null for a one-time purchase, an older payment, or a subscription that has already ended.
+ */
+export async function subscriptionToCancelAfterRefund(
+  db: Db,
+  transactionId: string,
+): Promise<string | null> {
+  const rows = await db
+    .select({ subscriptionId: subscriptions.subscriptionId })
+    .from(transactions)
+    .innerJoin(subscriptions, eq(subscriptions.subscriptionId, transactions.subscriptionId))
+    .where(
+      and(
+        eq(transactions.transactionId, transactionId),
+        sql`${subscriptions.status} <> 'canceled'`,
+        sql`not exists (
+          select 1 from transactions later
+           where later.subscription_id = ${transactions.subscriptionId}
+             and later.completed_at > ${transactions.completedAt})`,
+      ),
+    );
+  return rows[0]?.subscriptionId ?? null;
+}
+
 /** Returns the customer's license, creating it with `candidateKey` only if none exists yet. */
 export async function ensureLicense(
   db: Db,
