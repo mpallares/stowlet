@@ -94,6 +94,23 @@ export async function recordTransaction(
   );
 }
 
+/**
+ * Marks a transaction as refunded. Returns false when we never recorded that transaction.
+ * Keeps the first refund time, so a redelivered or later adjustment changes nothing.
+ */
+export async function markTransactionRefunded(
+  db: Db,
+  transactionId: string,
+  refundedAt: string,
+): Promise<boolean> {
+  const rows = await db.query<{ transaction_id: string }>(
+    `UPDATE transactions SET refunded_at = COALESCE(refunded_at, $2)
+      WHERE transaction_id = $1 RETURNING transaction_id`,
+    [transactionId, refundedAt],
+  );
+  return rows.length > 0;
+}
+
 /** Returns the customer's license, creating it with `candidateKey` only if none exists yet. */
 export async function ensureLicense(
   db: Db,
@@ -131,10 +148,19 @@ export async function findEntitlement(db: Db, licenseKey: string): Promise<Entit
   }>(
     `SELECT l.customer_id,
             l.revoked_at IS NOT NULL AS revoked,
+            -- A lifetime purchase counts until it is refunded.
             EXISTS (SELECT 1 FROM transactions t
-                     WHERE t.customer_id = l.customer_id AND t.lifetime) AS lifetime,
+                     WHERE t.customer_id = l.customer_id AND t.lifetime
+                       AND t.refunded_at IS NULL) AS lifetime,
+            -- A subscription counts unless its most recent payment was refunded; the next
+            -- successful payment brings it back.
             ARRAY(SELECT s.status FROM subscriptions s
-                   WHERE s.customer_id = l.customer_id) AS statuses
+                   WHERE s.customer_id = l.customer_id
+                     AND NOT COALESCE(
+                       (SELECT t.refunded_at IS NOT NULL FROM transactions t
+                         WHERE t.subscription_id = s.subscription_id
+                         ORDER BY t.completed_at DESC LIMIT 1),
+                       FALSE)) AS statuses
        FROM licenses l
       WHERE l.license_key = $1`,
     [licenseKey],
@@ -172,6 +198,7 @@ export async function claimLicenseByTransaction(
        FROM transactions t JOIN licenses l ON l.customer_id = t.customer_id
       WHERE t.transaction_id = $1
         AND l.revoked_at IS NULL
+        AND t.refunded_at IS NULL
         AND t.created_at > NOW() - make_interval(mins => $2::int)`,
     [transactionId, windowMinutes],
   );
